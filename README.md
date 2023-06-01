@@ -1,6 +1,8 @@
 # bazel-paq
 
-Bazel rule using paq utility to identify changes.
+Bazel rule for hashing targets.
+
+Easily track and deploy build changes.
 
 ## License
 
