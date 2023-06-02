@@ -1,15 +1,14 @@
 "Public API"
 
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_rust//rust:defs.bzl", "rust_binary")
 
-exports_files(
-    glob(["*.bzl"]),
-    visibility = ["//docs:__pkg__"],
-)
+package(default_visibility = ["//visibility:public"])
 
-bzl_library(
-    name = "defs",
-    srcs = ["defs.bzl"],
-    visibility = ["//visibility:public"],
-    deps = [],
+rust_binary(
+    name = "paq",
+    srcs = ["src/bin.rs"],
+    deps = [
+        # List your crate's dependencies here
+    ],
+    edition = "2018",
 )
