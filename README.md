@@ -13,7 +13,7 @@ Use this to limit releases to targets that have changed.
 
 Requires a cache of released hashes.
 
-## Bazel Build Release Workflow
+## Bazel Build Release Steps
 
 1. Read target hash from `.paq` file.
 2. Read released hash from cache.
