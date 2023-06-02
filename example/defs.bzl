@@ -1,3 +1,6 @@
+"""Rules for raw source deps
+"""
+
 def _src_files_impl(ctx):
     output_dir = ctx.actions.declare_directory(ctx.attr.output)
 
