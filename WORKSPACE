@@ -9,13 +9,22 @@ http_archive(
 )
 
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
-
 rules_rust_dependencies()
+rust_register_toolchains(edition = "2021")
 
-rust_register_toolchains()
-
-http_archive(
-    name = "paq",
-    sha256 = "204b301333d3de7555ea5659f40bc8d282a1f25e2e4ad21bfff170612c82b406",
-    urls = ["https://github.com/gregl83/paq/archive/refs/tags/v1.0.0.tar.gz"],
+load("@rules_rust//crate_universe:defs.bzl", "crates_repository", "crate")
+crates_repository(
+    name = "crate_index",
+    annotations = {
+        "paq": [crate.annotation(
+            gen_binaries = True,
+        )],
+    },
+    cargo_lockfile = "//:Cargo.lock",
+    lockfile = "//:Cargo.Bazel.lock",
+    manifests = ["//:Cargo.toml"],
 )
+
+load("@crate_index//:defs.bzl", "crate_repositories")
+
+crate_repositories()
