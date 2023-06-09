@@ -5,6 +5,8 @@ Bazel rule for hashing targets.
 
 Easily track and deploy build deltas.
 
+An optimization for monorepo releases.
+
 ## Purpose
 
 Reduce bazel build deployments to unreleased targets.
