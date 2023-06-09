@@ -7,7 +7,7 @@ Easily track and deploy build deltas.
 
 ## Purpose
 
-Reduce bazel build releases to targets that have changed.
+Reduce bazel build deployments to unreleased targets.
 
 Requires cache of build target hashes.
 
