@@ -3,15 +3,17 @@
 
 Bazel rule for hashing targets.
 
-Easily track and deploy build changes.
+Easily track and deploy build deltas.
 
 ## Purpose
 
-Provide a mechanism to identify build targets that have been updated.
+Reduce bazel build releases to targets that have changed.
 
-Use this to limit releases to targets that have changed.
+Requires cache of build target hashes.
 
-Requires a cache of released hashes.
+## Examples
+
+See [examples](examples) directory for bazel build targets using bazel-paq.
 
 ## Bazel Build Release Steps
 
