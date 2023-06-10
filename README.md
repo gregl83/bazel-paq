@@ -13,6 +13,27 @@ Reduce bazel build deployments to unreleased targets.
 
 Requires cache of build target hashes.
 
+## Usage
+
+Add http archive to repository WORKSPACE file.
+
+```skylark
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# To find additional information on this release or newer ones visit:
+# https://github.com/gregl83/bazel-paq/releases
+http_archive(
+    name = "bazel_paq",
+    sha256 = "37f40490169dc94013c7566c75c861977a2c02ce5505b7e975da0f7d5f2231c8",
+    urls = ["https://github.com/gregl83/bazel-paq/releases/download/1.0.0/bazel-paq-v1.0.0.tar.gz"],
+)
+```
+Invoke `paq` rule on BUILD file targets as needed.
+
+```skylark
+
+```
+
 ## Examples
 
 See [examples](examples) directory for bazel build targets using bazel-paq.
