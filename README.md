@@ -33,7 +33,7 @@ Invoke `paq` rule on BUILD file targets as needed.
 ```skylark
 load("@bazel_paq//:defs.bzl", "paq")
 
-# Produces file named `example.paq` in bazel-bin target directory.
+# Produces file named `hash.paq` in bazel-bin target directory.
 paq(
     name = "hash",
     source = ":<file-or-dir-build-target>",
