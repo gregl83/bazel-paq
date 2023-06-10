@@ -40,6 +40,20 @@ paq(
 )
 ```
 
+## Rule Output
+
+Invoking the `paq` bazel rule outputs a file named using the rule `name` argument value and the `.paq` filename extension.
+
+Output `paq` files are valid JSON and contain a single hash of a supplied bazel target within double quotes.
+
+## Hashing Algorithm
+
+A rust powered executable named `paq` uses `blake3` to hash either a single file or directory.
+
+Output hashes can be validated by installing `paq` and using it to hash build targets in bazel's `bazel-bin` directory.
+
+For more information see the [paq](https://github.com/gregl83/paq) project repository.
+
 ## Examples
 
 See [examples](examples) directory for bazel build targets using bazel-paq.
