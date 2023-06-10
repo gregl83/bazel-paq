@@ -17,7 +17,7 @@ Requires cache of build target hashes.
 
 Add http archive to repository WORKSPACE file.
 
-```skylark
+```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # To find additional information on this release or newer ones visit:
@@ -30,7 +30,7 @@ http_archive(
 ```
 Invoke `paq` rule on BUILD file targets as needed.
 
-```skylark
+```python
 load("@bazel_paq//:defs.bzl", "paq")
 
 # Produces file named `hash.paq` in bazel-bin target directory.
