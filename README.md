@@ -15,7 +15,7 @@ Requires cache of build target hashes.
 
 ## Usage
 
-Add http archive to repository WORKSPACE file.
+Add `http_archive` to `WORKSPACE` file in respective project repository.
 
 ```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -28,7 +28,7 @@ http_archive(
     urls = ["https://github.com/gregl83/bazel-paq/releases/download/1.0.0/bazel-paq-v1.0.0.tar.gz"],
 )
 ```
-Invoke `paq` rule on BUILD file targets as needed.
+Invoke `paq` rule in `BUILD` file for each repository target as needed.
 
 ```python
 load("@bazel_paq//:defs.bzl", "paq")
@@ -44,7 +44,7 @@ paq(
 
 Invoking the `paq` bazel rule outputs a file named using the rule `name` argument value and the `.paq` filename extension.
 
-Output `paq` files are valid JSON and contain a single hash of a supplied bazel target within double quotes.
+Output `paq` files are valid JSON and contain a single `blake3` hash in double quotes of a supplied bazel target.
 
 ## Hashing Algorithm
 
@@ -64,9 +64,9 @@ See [examples](examples) directory for bazel build targets using bazel-paq.
 2. Read released hash from cache.
 3. Compare target and released hashes.
 
-    a. If Equal: skip target release.
+    a. **Equal** - Skip target release.
     
-    b. If NOT Equal: release target.
+    b. **Unequal** - Release target.
 
 4. Set cache released hash to target hash.
 
