@@ -55,7 +55,7 @@ paq(
 
 Invoking the `paq` bazel rule outputs a file named using the rule `name` argument value and the `.paq` filename extension.
 
-Output `paq` files are valid JSON and contain a single `blake3` hash in double quotes of a supplied bazel target.
+Output `paq` files are valid JSON and contain a single `blake3` hash in double quotes for a supplied bazel target.
 
 ## Hashing Algorithm
 
@@ -67,19 +67,19 @@ For more information see the [paq](https://github.com/gregl83/paq) project repos
 
 ## Examples
 
-See [examples](examples) directory for bazel build targets using bazel-paq.
+See [examples](examples) directory for bazel build targets using `bazel-paq`.
 
-## Bazel Build Release Steps
+## Using Bazel Paq in Releases
 
 1. Read target hash from `.paq` file.
-2. Read released hash from cache.
-3. Compare target and released hashes.
+2. Read target release hash stored in cache.
+3. Compare target and target release hashes.
 
-    a. **Equal** - Skip target release.
+    a. **Equal** - Skip already released target.
     
-    b. **Unequal** - Release target.
+    b. **Unequal** - Release new target.
 
-4. Set cache released hash to target hash.
+4. Store target release hash in cache using target hash value.
 
 ## License
 
