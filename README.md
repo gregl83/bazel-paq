@@ -27,9 +27,6 @@ Add `http_archive` to `WORKSPACE` file in respective project repository.
 ```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-# CAUTION: Calculate SHA256 using `sha256sum` and bazel-paq downloaded tarball.
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
 http_archive(
     name = "bazel_paq",
     sha256 = "fd0f8a6e24d77a8994e19ce6621a0833836533e5fdd61999082d2eaeacc10a4a",
