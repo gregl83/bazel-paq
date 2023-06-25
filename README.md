@@ -16,16 +16,23 @@ Requires cache of build target hashes.
 
 ## Usage
 
+### Module
+
+Not supported in this release.
+
+### Workspace
+
 Add `http_archive` to `WORKSPACE` file in respective project repository.
 
 ```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+# CAUTION: Calculate SHA256 using `sha256sum` and bazel-paq downloaded tarball.
 http_archive(
     name = "bazel_paq",
-    sha256 = "2a88d837f8fb7bfe46b1d9f413df9a777ec2973e1f812929b597c1971a3a1da5",
-    strip_prefix = "bazel_paq",
-    url = "https://github.com/gregl83/bazel-paq/releases/download/v1.28.0/bazel-paq-v1.0.0.tar.gz",
+    sha256 = "<replace-with-calculated-sha256sum>",
+    strip_prefix = "v1.0.0",
+    url = "https://github.com/gregl83/bazel-paq/archive/refs/tags/v1.0.0.tar.gz",
 )
 
 load("@bazel_paq//:deps.bzl", "bazel_paq_dependencies")
