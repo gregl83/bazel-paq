@@ -1,4 +1,4 @@
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/gregl83/bazel-paq)
+![Release](https://img.shields.io/github/v/release/gregl83/bazel-paq)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/gregl83/bazel-paq/blob/master/LICENSE)
 # bazel-paq
 
@@ -28,9 +28,11 @@ Add `http_archive` to `WORKSPACE` file in respective project repository.
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # CAUTION: Calculate SHA256 using `sha256sum` and bazel-paq downloaded tarball.
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 http_archive(
     name = "bazel_paq",
-    sha256 = "<replace-with-calculated-sha256sum>",
+    sha256 = "fd0f8a6e24d77a8994e19ce6621a0833836533e5fdd61999082d2eaeacc10a4a",
     strip_prefix = "v1.0.0",
     url = "https://github.com/gregl83/bazel-paq/archive/refs/tags/v1.0.0.tar.gz",
 )
