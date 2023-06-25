@@ -33,8 +33,8 @@ paq = rule(
         "paq": attr.label(
             doc = "The paq binary",
             executable = True,
-            cfg = "host",
-            default = "@crate_index//:paq__paq",
+            cfg = "exec",
+            default = "@paq//:binary",
         ),
         "source": attr.label(
             doc = "File or Directory to be hashed by paq",

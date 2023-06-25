@@ -21,14 +21,18 @@ Add `http_archive` to `WORKSPACE` file in respective project repository.
 ```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-# To find additional information on this release or newer ones visit:
-# https://github.com/gregl83/bazel-paq/releases
 http_archive(
     name = "bazel_paq",
-    sha256 = "37f40490169dc94013c7566c75c861977a2c02ce5505b7e975da0f7d5f2231c8",
-    urls = ["https://github.com/gregl83/bazel-paq/releases/download/1.0.0/bazel-paq-v1.0.0.tar.gz"],
+    sha256 = "2a88d837f8fb7bfe46b1d9f413df9a777ec2973e1f812929b597c1971a3a1da5",
+    strip_prefix = "bazel_paq",
+    url = "https://github.com/gregl83/bazel-paq/releases/download/v1.28.0/bazel-paq-v1.0.0.tar.gz",
 )
+
+load("@bazel_paq//:deps.bzl", "bazel_paq_dependencies")
+
+bazel_paq_dependencies()
 ```
+
 Invoke `paq` rule in `BUILD` file for each repository target as needed.
 
 ```python
