@@ -4,9 +4,9 @@ def bazel_paq_dependencies():
     http_archive(
         name = "paq",
         urls = [
-            "https://github.com/gregl83/paq/releases/download/v1.0.0/paq-ubuntu-x86.zip"
+            "https://github.com/gregl83/paq/releases/download/v1.0.1/paq-ubuntu-x86.zip"
         ],
-        sha256 = "ba92a40c033f0dbf47d0f3be787bd61e9ad73022622a7c2f84492f6a0518a1af",
+        sha256 = "7e65423341267b6b3068a11e57a1b184e06cfa6497cb1cf13ca0efdd14270a61",
         build_file_content = """
 genrule(
     name = "paq_chmod_x",

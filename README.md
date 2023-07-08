@@ -30,8 +30,8 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "bazel_paq",
     sha256 = "fd0f8a6e24d77a8994e19ce6621a0833836533e5fdd61999082d2eaeacc10a4a",
-    strip_prefix = "bazel-paq-1.0.0",
-    url = "https://github.com/gregl83/bazel-paq/archive/refs/tags/v1.0.0.tar.gz",
+    strip_prefix = "bazel-paq-1.0.1",
+    url = "https://github.com/gregl83/bazel-paq/archive/refs/tags/v1.0.1.tar.gz",
 )
 
 load("@bazel_paq//:deps.bzl", "bazel_paq_dependencies")
