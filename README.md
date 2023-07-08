@@ -29,7 +29,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazel_paq",
-    sha256 = "fd0f8a6e24d77a8994e19ce6621a0833836533e5fdd61999082d2eaeacc10a4a",
+    sha256 = "369d2fb4b3d8375e4ec93cfcd86fab11885ba552fc533b1e40802f873a385f55",
     strip_prefix = "bazel-paq-1.0.1",
     url = "https://github.com/gregl83/bazel-paq/archive/refs/tags/v1.0.1.tar.gz",
 )
