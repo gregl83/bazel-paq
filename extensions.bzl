@@ -3,33 +3,33 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # paq binary operating system and architecture map
 PAQ_ARTIFACTS = {
     "linux_x64": {
-        "url": "https://github.com/gregl83/paq/releases/download/v1.3.1/paq-ubuntu-x64.zip",
-        "sha256": "df5b9ad53948cf751674367aa8c94acd8d0ff867c9b4ad657feac99dcb5946e6",
+        "url": "https://github.com/gregl83/paq/releases/download/v1.3.2/paq-ubuntu-x64.zip",
+        "sha256": "8ec6ef57e6ff04b0f8ba4a85711835584d61f764ff45daa26387a8bf728c455a",
         "binary": "paq",
     },
     "linux_x86": {
-        "url": "https://github.com/gregl83/paq/releases/download/v1.3.1/paq-ubuntu-x86.zip",
-        "sha256": "0b69f683ef2243747f208beaa88376fa7d0f39586da1abd8a5a3ced13a47b261",
+        "url": "https://github.com/gregl83/paq/releases/download/v1.3.2/paq-ubuntu-x86.zip",
+        "sha256": "d158f5be42537a94db4acd628fe491bb2d39730b8213778820f24d2147584f4f",
         "binary": "paq",
     },
     "macos_x64": {
-        "url": "https://github.com/gregl83/paq/releases/download/v1.3.1/paq-macOS-x64.zip",
-        "sha256": "ec91b218367f0fa7369e3f5e3b8c0b1020b1754aeec0dd559771c397ba6ff3c5",
+        "url": "https://github.com/gregl83/paq/releases/download/v1.3.2/paq-macOS-x64.zip",
+        "sha256": "ddbc46d7e6dd17a18cc78f650a267ba678408cfb558f9d3ca935c6de70d5c393",
         "binary": "paq",
     },
     "macos_x86": {
-        "url": "https://github.com/gregl83/paq/releases/download/v1.3.1/paq-macOS-x86.zip",
-        "sha256": "ce5d1fd4b6cf0a50830190f8d9a4c671904b90fd3f180f6aed5703d70a7e44d8",
+        "url": "https://github.com/gregl83/paq/releases/download/v1.3.2/paq-macOS-x86.zip",
+        "sha256": "c890b00a7c20682bdc5a1a460369c4af5458b56bec967c380e3298e2c2c813ad",
         "binary": "paq",
     },
     "windows_x64": {
-        "url": "https://github.com/gregl83/paq/releases/download/v1.3.1/paq-windows-x64.zip",
-        "sha256": "111be9a40197f8e6b561c49a5b25d7e59b15fef2b7caeafbd542c27eefb4ba2b",
+        "url": "https://github.com/gregl83/paq/releases/download/v1.3.2/paq-windows-x64.zip",
+        "sha256": "f56be7b0f614d36042f7f105d400f90c3f57832bb9aa818493d31c7a21e8c6f1",
         "binary": "paq.exe",
     },
     "windows_x86": {
-        "url": "https://github.com/gregl83/paq/releases/download/v1.3.1/paq-windows-x86.zip",
-        "sha256": "acf9c0e19fce7445a3da6aee77d85d34a1b3f5d628bf41c42f39fba2cde2da18",
+        "url": "https://github.com/gregl83/paq/releases/download/v1.3.2/paq-windows-x86.zip",
+        "sha256": "1e661b3153245c77f70434b41aeb0134a352c2dd2e941a2b4a971ce83a951849",
         "binary": "paq.exe",
     },
 }
