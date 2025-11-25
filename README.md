@@ -5,18 +5,27 @@
 
 [Bazel aspect](https://bazel.build/extending/aspects) for computing target hashes.
 
-Easily track build deltas by comparing target hashes.
-
-## Purpose
-
-Provide seamless mechanism to compare build output targets to deployed artifacts or with previous builds.
+Easily track build deltas by comparing target hashes with deployed artifacts or previous builds.
 
 ## Usage
 
-### Setup
+### Workspace Configuration
 
-1. Add `bazel_dep(name = "bazel_paq", version = "1.3.0")` to the dependency section of workspace's `MODULE.bazel` configuration.
-2. Add `load("@bazel_paq//:defs.bzl", "paq_aspect")` to workspace's `defs.bzl` definitions.
+#### 1. Add Module Dependency
+
+Add the following to the dependency section of a workspace's `MODULE.bazel`:
+
+```text
+bazel_dep(name = "bazel_paq", version = "1.3.0")
+```
+
+#### 2. Add Load Definition
+
+Add the following to a workspace's `defs.bzl`:
+
+```text
+load("@bazel_paq//:defs.bzl", "paq_aspect")
+```
 
 ### Executing Builds
 
@@ -45,7 +54,7 @@ bazel build //... --aspects=//:defs.bzl%paq_aspect --output_groups=+paq_files
 
 Executing `bazel build` with the `bazel-paq` aspect configuration will compute unique hashes for every build target output.
 
-Output hash filenames are `source_file.ext.paq` for files and `.paq` for directories.
+Output hash filenames are `target_output_filename.ext.paq` for files and `.paq` for directories.
 
 Files are valid JSON and contain a single `blake3` hash in double quotes.
 
