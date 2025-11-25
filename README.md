@@ -16,7 +16,7 @@ Easily track build deltas by comparing target hashes with deployed artifacts or 
 Add the following to the dependency section of a workspace's `MODULE.bazel`:
 
 ```text
-bazel_dep(name = "bazel_paq", version = "1.3.0")
+bazel_dep(name = "bazel_paq", version = "1.3.1")
 ```
 
 #### 2. Add Load Definition
