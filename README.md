@@ -1,95 +1,63 @@
 ![Release](https://img.shields.io/github/v/release/gregl83/bazel-paq)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/gregl83/bazel-paq/blob/master/LICENSE)
+
 # bazel-paq
 
-Bazel rule for hashing targets.
+[Bazel aspect](https://bazel.build/extending/aspects) for computing target hashes.
 
-Easily track and deploy build deltas.
-
-An optimization for monorepo releases.
+Easily track build deltas by comparing target hashes.
 
 ## Purpose
 
-Reduce bazel build deployments to unreleased targets.
-
-Requires cache of build target hashes.
+Provide seamless mechanism to compare build output targets to deployed artifacts or with previous builds.
 
 ## Usage
 
-```bash
-bazel build //... --aspects=//:defs.bzl%paq_aspect --output_groups=+paq_files
+### Setup
+
+1. Add `bazel_dep(name = "bazel_paq", version = "1.3.0")` to the dependency section of workspace's `MODULE.bazel` configuration.
+2. Add `load("@bazel_paq//:defs.bzl", "paq_aspect")` to workspace's `defs.bzl` definitions.
+
+### Executing Builds
+
+#### Short Command
+
+Add the following to the workspace `.bazelrc` configuration file:
+
+```text
+build:paq --aspects=@bazel_paq//:defs.bzl%paq_aspect
+build:paq --output_groups=+paq_files
 ```
 
-OR
+Execute build:
 
 ```bash
 bazel build --config=paq //...
 ```
 
-### Module
+#### Long Command
 
-Not supported in this release.
-
-### Workspace
-
-Add `http_archive` to `WORKSPACE` file in respective project repository.
-
-```python
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-http_archive(
-    name = "bazel_paq",
-    sha256 = "369d2fb4b3d8375e4ec93cfcd86fab11885ba552fc533b1e40802f873a385f55",
-    strip_prefix = "bazel-paq-1.0.1",
-    url = "https://github.com/gregl83/bazel-paq/archive/refs/tags/v1.0.1.tar.gz",
-)
-
-load("@bazel_paq//:deps.bzl", "bazel_paq_dependencies")
-
-bazel_paq_dependencies()
+```bash
+bazel build //... --aspects=//:defs.bzl%paq_aspect --output_groups=+paq_files
 ```
 
-Invoke `paq` rule in `BUILD` file for each repository target as needed.
+## Aspect Output
 
-```python
-load("@bazel_paq//:defs.bzl", "paq")
+Executing `bazel build` with the `bazel-paq` aspect configuration will compute unique hashes for every build target output.
 
-# Produces file named `hash.paq` in bazel-bin target directory.
-paq(
-    name = "hash",
-    source = ":<file-or-dir-build-target>",
-)
-```
+Output hash filenames are `source_file.ext.paq` for files and `.paq` for directories.
 
-## Rule Output
-
-Invoking the `paq` bazel rule outputs a file named using the rule `name` argument value and the `.paq` filename extension.
-
-Output `paq` files are valid JSON and contain a single `blake3` hash in double quotes for a supplied bazel target.
+Files are valid JSON and contain a single `blake3` hash in double quotes.
 
 ## Hashing Algorithm
 
-A rust powered executable named `paq` uses `blake3` to hash either a single file or directory.
+The [paq](https://github.com/gregl83/paq) executable used in `bazel-paq` is powered by the `blake3` hashing algorithm to compute hashes of files or directories.
 
-Output hashes can be validated by installing `paq` and using it to hash build targets in bazel's `bazel-bin` directory.
+Output hashes can be validated by installing [paq](https://github.com/gregl83/paq), computing build target hashes in bazel's `bazel-bin` directory, and comparing results against `.paq` build outputs.
 
-For more information see the [paq](https://github.com/gregl83/paq) project repository.
+## Example
 
-## Examples
-
-See [examples](examples) directory for bazel build targets using `bazel-paq`.
-
-## Using Bazel Paq in Releases
-
-1. Read target hash from `.paq` file.
-2. Read target release hash stored in cache.
-3. Compare target and target release hashes.
-
-    a. **Equal** - Skip already released target.
-    
-    b. **Unequal** - Release new target.
-
-4. Store target release hash in cache using target hash value.
+See the [examples](examples) directory for a bazel module workspace using `bazel-paq`.
 
 ## License
 
