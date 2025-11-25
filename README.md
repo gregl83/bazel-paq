@@ -16,6 +16,16 @@ Requires cache of build target hashes.
 
 ## Usage
 
+```bash
+bazel build //... --aspects=//:defs.bzl%paq_aspect --output_groups=+paq_files
+```
+
+OR
+
+```bash
+bazel build --config=paq //...
+```
+
 ### Module
 
 Not supported in this release.
