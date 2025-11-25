@@ -1,0 +1,3 @@
+# `paq` config that applies the aspect and requests the output
+build:paq --aspects=@bazel_paq//:defs.bzl%paq_aspect
+build:paq --output_groups=+paq_files
