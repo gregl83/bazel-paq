@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     g++ \
     python3 \
     python3-pip \
+    tree \
     && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables
