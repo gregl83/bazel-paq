@@ -1,4 +1,4 @@
-# Example
+# Examples
 
 A bazel module workspace example using `bazel-paq` target output hashing.
 
@@ -8,7 +8,7 @@ For each build output, the `bazel-paq` aspect will produce a `.paq` hash of that
 
 Naming convention is `target_output_filename.ext.paq` for files or `.paq` for directories.
 
-## Build Examples
+## Example Projects 
 
 - [configuration](./configuration): Single file output `paq` hash.
 - [infrastructure](./infrastructure): Directory output `paq` hash.

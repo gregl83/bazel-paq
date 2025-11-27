@@ -74,6 +74,7 @@ genrule(
     srcs = ["{binary_filename}"],
     outs = ["paq_executable"],
     cmd = "cp $< $@ && chmod +x $@",
+    executable = True,
 )
 
 filegroup(
