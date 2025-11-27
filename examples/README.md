@@ -34,7 +34,6 @@ bazel-out/k8-fastbuild/bin
 |   |   |-- MANIFEST
 |   |   |-- __init__.py
 |   |   |-- _main
-|   |   |-- _repo_mapping -> /home/ubuntu/.cache/bazel/_bazel_ubuntu/319b34708bb6dbbf8e9f5ab919a2c5bb/execroot/_main/bazel-out/k8-fastbuild/bin/python-service/app.repo_mapping
 |   |   `-- rules_python++python+python_3_11_x86_64-unknown-linux-gnu
 |   `-- app.runfiles_manifest
 `-- rust-command
@@ -43,7 +42,6 @@ bazel-out/k8-fastbuild/bin
     |-- command.repo_mapping
     |-- command.runfiles
     |   |-- MANIFEST
-    |   |-- _main
-    |   `-- _repo_mapping -> /home/ubuntu/.cache/bazel/_bazel_ubuntu/319b34708bb6dbbf8e9f5ab919a2c5bb/execroot/_main/bazel-out/k8-fastbuild/bin/rust-command/command.repo_mapping
+    |   ``-- _main
     `-- command.runfiles_manifest
 ```
