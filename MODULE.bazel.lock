@@ -138,7 +138,7 @@
   "moduleExtensions": {
     "//:extensions.bzl%paq_extension": {
       "general": {
-        "bzlTransitiveDigest": "3IqmvoWsrGg8qmFPmt55HUfIPvQ+J2qlTMJvjOd/Jsg=",
+        "bzlTransitiveDigest": "oxcVzGv70Jm4sDBLeI3a8ZpLe7FFRC+XpQgxpH8+r7s=",
         "usagesDigest": "eL6fquuEFgUKojaMVIvnmHyTwGrLRpFBXo1J+yjLYJE=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -148,10 +148,10 @@
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
             "attributes": {
               "urls": [
-                "https://github.com/gregl83/paq/releases/download/v1.3.3/paq-windows-x64.zip"
+                "https://github.com/gregl83/paq/releases/download/v1.3.3/paq-ubuntu-x64.zip"
               ],
-              "sha256": "1fc39ab17ea06e30d7812afba88e4d5f86898e6510a5748648f2b48eec265cf1",
-              "build_file_content": "\ngenrule(\n    name = \"paq_chmod_x\",\n    srcs = [\"paq.exe\"],\n    outs = [\"paq_executable\"],\n    cmd = \"cp $< $@ && chmod +x $@\",\n)\n\nfilegroup(\n    name = \"binary\",\n    srcs = [\":paq_executable\"],\n    visibility = [\"//visibility:public\"],\n)\n"
+              "sha256": "a99739e918611def507a78f2ac8d615a41a54b20372e949bc1c0fd1ad8128347",
+              "build_file_content": "\ngenrule(\n    name = \"paq_chmod_x\",\n    srcs = [\"paq\"],\n    outs = [\"paq_executable\"],\n    cmd = \"cp $< $@ && chmod +x $@\",\n    executable = True,\n)\n\nfilegroup(\n    name = \"binary\",\n    srcs = [\":paq_executable\"],\n    visibility = [\"//visibility:public\"],\n)\n"
             }
           }
         },
