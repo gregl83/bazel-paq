@@ -3,22 +3,39 @@ FROM ubuntu:24.04
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install required dependencies
+# Install required dependencies as root
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
     curl \
     gnupg \
     ca-certificates \
+    unzip \
+    build-essential \
+    gcc \
+    g++ \
+    python3 \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Add Bazel distribution URI as a package source
-RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor -o /usr/share/keyrings/bazel-archive-keyring.gpg
+# Set environment variables
+ENV HOME=/home/ubuntu
+ENV USER=ubuntu
 
-RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
+# Create workspace and ensure ubuntu user owns their home
+RUN mkdir -p /workspace && chown -R ubuntu:ubuntu /workspace /home/ubuntu
 
-# Install Bazel
-RUN apt-get update && apt-get install -y bazel \
-    && rm -rf /var/lib/apt/lists/*
+# Switch to non-root user
+USER ubuntu
+WORKDIR /home/ubuntu
+
+# Install Bazelisk (manages Bazel versions automatically)
+RUN curl -fsSL https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64 -o bazelisk \
+    && chmod +x bazelisk \
+    && mkdir -p /home/ubuntu/bin \
+    && mv bazelisk /home/ubuntu/bin/bazel
+
+# Add to PATH
+ENV PATH="/home/ubuntu/bin:${PATH}"
 
 # Verify installation
 RUN bazel --version
