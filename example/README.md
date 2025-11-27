@@ -1,4 +1,4 @@
-# Examples
+# Example
 
 A bazel module workspace example using `bazel-paq` target output hashing.
 

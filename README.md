@@ -76,7 +76,7 @@ The [paq](https://github.com/gregl83/paq) executable used in `bazel-paq` is powe
 
 ## Workspace Example
 
-See the [examples](examples) directory for a bazel module workspace that uses `bazel-paq`.
+See the [example](example) directory for a bazel module workspace that uses `bazel-paq`.
 
 Run builds and inspect outputs!
 
