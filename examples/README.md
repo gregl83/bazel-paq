@@ -10,10 +10,10 @@ Naming convention is `target_output_filename.ext.paq` for files or `.paq` for di
 
 ## Example Projects 
 
-- [configuration](./configuration): Single file output `paq` hash.
-- [infrastructure](./infrastructure): Directory output `paq` hash.
-- [python-service](./python-service): Python Flask output `paq` hash.
-- [rust-command](./rust-command): Rust binary output `paq` hash.
+- [configuration](./configuration): Single file output.
+- [infrastructure](./infrastructure): Directory output.
+- [python-service](./python-service): Python Flask output.
+- [rust-command](./rust-command): Rust binary output.
 
 ## Build Output
 
