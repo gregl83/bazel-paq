@@ -3,9 +3,9 @@
 
 # bazel-paq
 
-[Bazel aspect](https://bazel.build/extending/aspects) for computing target hashes.
+[Bazel aspect](https://bazel.build/extending/aspects) for computing target output hashes.
 
-Easily track build deltas by comparing target hashes with deployed artifacts or previous builds.
+Easily track build deltas by comparing output hashes with deployed artifacts or previous builds.
 
 ## Usage
 
