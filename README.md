@@ -13,7 +13,7 @@ Easily track build deltas by comparing output hashes with deployed artifacts or 
 
 #### 1. Add Module Dependency
 
-Add the following to the dependency section of a workspace's `MODULE.bazel`:
+Add the following to the dependency section the workspace `MODULE.bazel`:
 
 ```text
 bazel_dep(name = "bazel_paq", version = "1.3.3")
@@ -21,7 +21,7 @@ bazel_dep(name = "bazel_paq", version = "1.3.3")
 
 #### 2. Add Load Definition
 
-Add the following to a workspace's `defs.bzl`:
+Add the following to the workspace `defs.bzl`:
 
 ```text
 load("@bazel_paq//:defs.bzl", "paq_aspect")
@@ -50,9 +50,15 @@ bazel build --config=paq //...
 bazel build //... --aspects=//:defs.bzl%paq_aspect --output_groups=+paq_files
 ```
 
+### Executing Tests
+
+```bash
+bazel test tests:all --test_output=all
+```
+
 ## Aspect Output
 
-Executing `bazel build` with the `bazel-paq` aspect configuration will compute unique hashes for every build target output.
+Executing `bazel build` with the `bazel-paq` aspect configured will compute unique hashes for every build target output.
 
 Output hash filenames are `target_output_filename.ext.paq` for files and `.paq` for directories.
 
@@ -60,13 +66,19 @@ Files are valid JSON and contain a single `blake3` hash in double quotes.
 
 ## Hashing Algorithm
 
-The [paq](https://github.com/gregl83/paq) executable used in `bazel-paq` is powered by the `blake3` hashing algorithm to compute hashes of files or directories.
+The [paq](https://github.com/gregl83/paq) executable used in `bazel-paq` is powered by the `blake3` hashing algorithm.
 
-Output hashes can be validated by installing [paq](https://github.com/gregl83/paq), computing build target hashes in bazel's `bazel-bin` directory, and comparing results against `.paq` build outputs.
+#### Output Hash Validation
 
-## Example
+1. **Install:** Make the [paq](https://github.com/gregl83/paq) executable available on validation system.
+2. **Compute:** Hash a build target output using `paq`.
+3. **Compare:** Open respective `.paq` build output and validate it equals computed hash from Step 2.
 
-See the [examples](examples) directory for a bazel module workspace using `bazel-paq`.
+## Workspace Example
+
+See the [examples](examples) directory for a bazel module workspace that uses `bazel-paq`.
+
+Run builds and inspect outputs!
 
 ## License
 
