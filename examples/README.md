@@ -42,6 +42,6 @@ bazel-out/k8-fastbuild/bin
     |-- command.repo_mapping
     |-- command.runfiles
     |   |-- MANIFEST
-    |   ``-- _main
+    |   `-- _main
     `-- command.runfiles_manifest
 ```
