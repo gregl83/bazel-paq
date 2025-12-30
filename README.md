@@ -47,7 +47,7 @@ bazel build --config=paq //...
 #### Long Command
 
 ```bash
-bazel build //... --aspects=//:defs.bzl%paq_aspect --output_groups=+paq_files
+bazel build //... --aspects=@bazel_paq//:defs.bzl%paq_aspect --output_groups=+paq_files
 ```
 
 ### Executing Tests
