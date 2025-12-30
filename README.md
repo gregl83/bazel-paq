@@ -74,11 +74,34 @@ The [paq](https://github.com/gregl83/paq) executable used in `bazel-paq` is powe
 2. **Compute:** Hash a build target output using `paq`.
 3. **Compare:** Open respective `.paq` build output and validate it equals computed hash from Step 2.
 
-## Workspace Example
+## Example Workspace
 
-See the [example](example) directory for a bazel module workspace that uses `bazel-paq`.
+The [example](example) directory contains a complete Bazel module workspace demonstrating `bazel-paq` usage.
 
-Run builds and inspect outputs!
+### Output Structure
+
+Target output hash files use `.paq` extension.
+
+```text
+bazel-bin
+|-- configuration
+|   |-- config.out.json
+|   `-- config.out.json.paq
+|-- infrastructure
+|   |-- templates.manifest
+|   |-- templates.tar
+|   `-- templates.tar.paq
+|-- python-service
+|   |-- app
+|   |-- app.paq
+|   |-- app.repo_mapping
+|   `-- app.runfiles_manifest
+`-- rust-command
+    |-- command
+    |-- command.paq
+    |-- command.repo_mapping
+    `-- command.runfiles_manifest
+```
 
 ## License
 
