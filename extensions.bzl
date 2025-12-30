@@ -3,33 +3,33 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # paq binary operating system and architecture map
 PAQ_ARTIFACTS = {
     "linux_x64": {
-        "url": "https://github.com/gregl83/paq/releases/download/v1.4.0/paq-ubuntu-x64.zip",
-        "sha256": "19030c217b82a3a446411ed66c0eaf5c9ef353bc7583c965bcf56dd5bd3b7271",
+        "url": "https://github.com/gregl83/paq/releases/download/v1.4.1/paq-ubuntu-x64.zip",
+        "sha256": "7f821196ee70566337a8a0aaca7ded3744f4107998accf2c13214f751214cb47",
         "binary": "paq",
     },
     "linux_x86": {
-        "url": "https://github.com/gregl83/paq/releases/download/v1.4.0/paq-ubuntu-x86.zip",
-        "sha256": "7be5787d30e97f64db3e5cd1d2d8aa1bc29958e42f4b73a5915340b2dfafd4b4",
+        "url": "https://github.com/gregl83/paq/releases/download/v1.4.1/paq-ubuntu-x86.zip",
+        "sha256": "30aef3732e06013b2112f7d90c089d4650776cfaad105a468a4c2642db4aa59a",
+        "binary": "paq",
+    },
+    "macos_arm64": {
+        "url": "https://github.com/gregl83/paq/releases/download/v1.4.1/paq-macos-arm64.zip",
+        "sha256": "91bd0ae90abe05745de7288e560fbb6fe5ccec8a3a6c8bb99bbac192868ef776",
         "binary": "paq",
     },
     "macos_x64": {
-        "url": "https://github.com/gregl83/paq/releases/download/v1.4.0/paq-macOS-x64.zip",
-        "sha256": "fd2e7a03ed939ae0a12f886902eeb81f668a0eee3dfd505f1b3b6e7a03451f64",
-        "binary": "paq",
-    },
-    "macos_x86": {
-        "url": "https://github.com/gregl83/paq/releases/download/v1.4.0/paq-macOS-x86.zip",
-        "sha256": "fd2e7a03ed939ae0a12f886902eeb81f668a0eee3dfd505f1b3b6e7a03451f64",
+        "url": "https://github.com/gregl83/paq/releases/download/v1.4.1/paq-macos-x64.zip",
+        "sha256": "b75e392d5872cf14320cbd7f2d4eb616a191373480bcdd91a08bd15ab675ea2a",
         "binary": "paq",
     },
     "windows_x64": {
-        "url": "https://github.com/gregl83/paq/releases/download/v1.4.0/paq-windows-x64.zip",
-        "sha256": "838e9a9dc33d832a4cc9af13c748f72b95070666c96689e6e77906fb978cc45a",
+        "url": "https://github.com/gregl83/paq/releases/download/v1.4.1/paq-windows-x64.zip",
+        "sha256": "4afd0b3b0039c4b819c2bfcd1489f515c323bc2931cbb02ec59ccbe41d498171",
         "binary": "paq.exe",
     },
     "windows_x86": {
-        "url": "https://github.com/gregl83/paq/releases/download/v1.4.0/paq-windows-x86.zip",
-        "sha256": "b0c8ee5bf9be780a7f3c5c16f461701774db7d10804ad844c391cf859c3e2e86",
+        "url": "https://github.com/gregl83/paq/releases/download/v1.4.1/paq-windows-x86.zip",
+        "sha256": "0b84aaded70c78c4dc930ba7a88d3acf4966385cba33c5774d00c9d483ef1209",
         "binary": "paq.exe",
     },
 }
@@ -51,7 +51,8 @@ def _paq_extension_impl(ctx):
     if raw_arch in ["x86_64", "amd64"]:
         arch_key = "x64"
     elif raw_arch in ["aarch64", "arm64"]:
-        arch_key = "x64"
+        if os_key == "macos":
+            arch_key = "arm64"
     elif raw_arch in ["x86", "i386", "i686"]:
         arch_key = "x86"
     else:

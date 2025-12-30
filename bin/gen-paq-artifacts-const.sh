@@ -7,7 +7,7 @@ import sys
 # repository configuration
 REPO_OWNER = "gregl83"
 REPO_NAME = "paq"
-REPO_TAG = "v1.4.0"
+REPO_TAG = "v1.4.1"
 API_URL = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases/tags/{REPO_TAG}"
 
 # mapping repository artifacts to bazel keys
@@ -17,7 +17,7 @@ PLATFORM_MAPPING = {
     "windows-x64":  {"key": "windows_x64", "binary": "paq.exe"},
     "windows-x86":  {"key": "windows_x86",   "binary": "paq.exe"},
     "macos-x64":    {"key": "macos_x64",   "binary": "paq"},
-    "macos-x86":    {"key": "macos_x86",     "binary": "paq"},
+    "macos-arm64":    {"key": "macos_arm64",     "binary": "paq"},
 }
 
 def get_sha256(url, filename):
