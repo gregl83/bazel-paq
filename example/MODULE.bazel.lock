@@ -470,6 +470,34 @@
         ]
       }
     },
+    "@@bazel_paq+//:extensions.bzl%paq_extension": {
+      "general": {
+        "bzlTransitiveDigest": "GAGDjZXwvctyGNLyx5ABHoJIAYBxpi7L78JBe3oBlpk=",
+        "usagesDigest": "NVRgQyc0hzCrD/DdSDuUAXjF6WsiZZnEKFjhIS12HbE=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "paq": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "urls": [
+                "https://github.com/gregl83/paq/releases/download/v1.4.1/paq-ubuntu-x64.zip"
+              ],
+              "sha256": "7f821196ee70566337a8a0aaca7ded3744f4107998accf2c13214f751214cb47",
+              "build_file_content": "\ngenrule(\n    name = \"paq_chmod_x\",\n    srcs = [\"paq\"],\n    outs = [\"paq_executable\"],\n    cmd = \"cp $< $@ && chmod +x $@\",\n    executable = True,\n)\n\nfilegroup(\n    name = \"binary\",\n    srcs = [\":paq_executable\"],\n    visibility = [\"//visibility:public\"],\n)\n"
+            }
+          }
+        },
+        "recordedRepoMappingEntries": [
+          [
+            "bazel_paq+",
+            "bazel_tools",
+            "bazel_tools"
+          ]
+        ]
+      }
+    },
     "@@rules_buf+//buf:extensions.bzl%ext": {
       "general": {
         "bzlTransitiveDigest": "m6JhnDQjtv1Gv36qXoZpNqTHIQN6fD/+MYRZa5Mtr48=",
