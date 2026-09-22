@@ -1,3 +1,4 @@
+[![Build](https://github.com/gregl83/bazel-paq/actions/workflows/ci.yml/badge.svg)](https://github.com/gregl83/bazel-paq/actions/workflows/ci.yml)
 ![Release](https://img.shields.io/github/v/release/gregl83/bazel-paq)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/gregl83/bazel-paq/blob/master/LICENSE)
 
