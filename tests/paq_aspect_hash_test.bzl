@@ -1,3 +1,4 @@
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//:defs.bzl", "paq_aspect")
 
 def _paq_applier_impl(ctx):
@@ -23,7 +24,7 @@ def hash_test(name, target_under_test, expected):
     )
 
     # test hash using assert_paq.sh
-    native.sh_test(
+    sh_test(
         name = name,
         srcs = ["//tests:assert_paq.sh"],
         data = [":" + name + "_paq"],

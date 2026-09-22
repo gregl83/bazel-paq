@@ -7,7 +7,7 @@ import sys
 # repository configuration
 REPO_OWNER = "gregl83"
 REPO_NAME = "paq"
-REPO_TAG = "v1.4.1"
+REPO_TAG = "v1.5.0"
 API_URL = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases/tags/{REPO_TAG}"
 
 # mapping repository artifacts to bazel keys
