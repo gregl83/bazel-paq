@@ -1,3 +1,4 @@
+[![Build](https://github.com/gregl83/bazel-paq/actions/workflows/ci.yml/badge.svg)](https://github.com/gregl83/bazel-paq/actions/workflows/ci.yml)
 ![Release](https://img.shields.io/github/v/release/gregl83/bazel-paq)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/gregl83/bazel-paq/blob/master/LICENSE)
 
@@ -16,7 +17,7 @@ Easily track build deltas by comparing output hashes with deployed artifacts or 
 Add the following to the dependency section the workspace `MODULE.bazel`:
 
 ```text
-bazel_dep(name = "bazel_paq", version = "1.4.1")
+bazel_dep(name = "bazel_paq", version = "1.5.0")
 ```
 
 #### 2. Add Load Definition
