@@ -189,8 +189,8 @@
   "selectedYankedVersions": {},
   "moduleExtensions": {
     "//:extensions.bzl%paq_extension": {
-      "general": {
-        "bzlTransitiveDigest": "1kAw1hztS0ljbAiNaYfQ/ouSLu+t3RCgi4kW7/P5lLc=",
+      "os:linux,arch:amd64": {
+        "bzlTransitiveDigest": "TishApWhFDkVf1HVdUr/YwGDvMbiSF7hGzDSH/lTMEU=",
         "usagesDigest": "98wLfhWNE40Sr5CfvIxuz+3iPpdIHAc4nzpOvlnbXJE=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"

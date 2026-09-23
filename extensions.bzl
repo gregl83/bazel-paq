@@ -88,4 +88,6 @@ filegroup(
 
 paq_extension = module_extension(
     implementation = _paq_extension_impl,
+    os_dependent = True,
+    arch_dependent = True,
 )

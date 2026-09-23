@@ -471,8 +471,8 @@
       }
     },
     "@@bazel_paq+//:extensions.bzl%paq_extension": {
-      "general": {
-        "bzlTransitiveDigest": "TXKkgwSGbUTZKt7Z11KNUdQ4wWDfo55RsmZ+h7DbHiM=",
+      "os:linux,arch:amd64": {
+        "bzlTransitiveDigest": "m/ApCNDX9FWOupzEhvhs242Z0l9GkdP3r5sfNOnNNYM=",
         "usagesDigest": "LYaqa0ZK7tBKA7KDG0ICV0pEcOLa5y72TFfHqKdUkpc=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
