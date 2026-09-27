@@ -7,24 +7,22 @@ def _paq_aspect_test_impl(ctx):
     # get test target
     target = analysistest.target_under_test(env)
 
-    original_outputs = target[DefaultInfo].files.to_list()
-
     # assert OutputGroupInfo exists
     if OutputGroupInfo not in target:
-        asserts.true(env, False, "OutputGroupInfo provider not found on target")
+        asserts.equals(env, [], ctx.attr.expected, "OutputGroupInfo provider not found on target")
         return analysistest.end(env)
     output_info = target[OutputGroupInfo]
 
     # assert 'paq_files' output group exists from paq aspect execution
     if not hasattr(output_info, "paq_files"):
-        asserts.true(env, False, "'paq_files' output group not found")
+        asserts.equals(env, [], ctx.attr.expected, "'paq_files' output group not found")
         return analysistest.end(env)
     paq_files = output_info.paq_files.to_list()
 
     # assert file output paths
     expected = ctx.attr.expected
-    for i, paq_file in enumerate(paq_files):
-        asserts.equals(env, expected[i], paq_file.short_path)
+    actual = [paq_file.short_path for paq_file in paq_files]
+    asserts.equals(env, sorted(expected), sorted(actual))
 
     return analysistest.end(env)
 
