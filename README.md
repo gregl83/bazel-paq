@@ -19,7 +19,7 @@ bazel-bin/service/
 └── assets.paq
 ```
 
-Each `.paq` contains one JSON string: a BLAKE3-based fingerprint of its artifact.
+Each `.paq` contains one JSON string: a `BLAKE3`-based fingerprint of its artifact.
 A target producing several artifacts gets a separate hash for each one. A
 directory output gets one recursive hash, stored **outside** the directory.
 
