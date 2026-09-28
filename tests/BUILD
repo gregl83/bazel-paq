@@ -96,6 +96,7 @@ symlink(
     name = "directory_symlink",
     out = "directory-link",
     target_path = "directory",
+    target_type = "directory",
     srcs = [":directory"],
     testonly = True,
 )

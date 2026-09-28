@@ -34,7 +34,12 @@ def _outputs(ctx):
     files.append(tree)
     for name, destination in [("link", ctx.attr.link_target), ("chain", "link"), ("tree.link", "tree.out")]:
         link = ctx.actions.declare_symlink(name)
-        ctx.actions.symlink(output = link, target_path = destination)
+        # The tree may not exist yet; Windows must not infer a file symlink.
+        ctx.actions.symlink(
+            output = link,
+            target_path = destination,
+            target_type = "directory" if name == "tree.link" else "file",
+        )
         files.append(link)
     return [DefaultInfo(files = depset(files))]
 

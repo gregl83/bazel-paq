@@ -27,6 +27,7 @@ def _symlink_impl(ctx):
     ctx.actions.symlink(
         output = output,
         target_path = ctx.attr.target_path,
+        target_type = ctx.attr.target_type,
     )
 
     files = []
@@ -40,6 +41,7 @@ symlink = rule(
     attrs = {
         "out": attr.string(mandatory = True),
         "target_path": attr.string(mandatory = True),
+        "target_type": attr.string(default = "file", values = ["file", "directory"]),
         "srcs": attr.label_list(),
     },
 )
