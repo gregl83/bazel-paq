@@ -114,9 +114,9 @@ rather than assuming every file left in `bazel-bin` is current.
 
 > [!WARNING]
 > **Only consume hashes from a successful build of the `paq_files` output group.**
+> Check that `bazel build --config=paq ...` exits with code `0` before using its hashes.
 > A failed or cancelled build can leave older `.paq` files in place; their presence
-> does not indicate success. When using build events, check the paq aspect's
-> completion status as well as the target's.
+> does not indicate success.
 
 ## Verify a Hash
 
