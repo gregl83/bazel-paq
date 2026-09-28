@@ -1,5 +1,5 @@
 [![Build](https://github.com/gregl83/bazel-paq/actions/workflows/ci.yml/badge.svg)](https://github.com/gregl83/bazel-paq/actions/workflows/ci.yml)
-![Release](https://img.shields.io/github/v/release/gregl83/bazel-paq)
+[![Release](https://img.shields.io/github/v/release/gregl83/bazel-paq?label=release)](https://github.com/gregl83/bazel-paq/releases/latest)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/gregl83/bazel-paq/blob/master/LICENSE)
 
 # bazel-paq
@@ -111,6 +111,10 @@ Your deployment system chooses how to group artifacts and act on changes.
 `bazel-paq` supplies the fingerprints as part of the build. Consumers track
 artifact membership and removals using the current build's output inventory,
 rather than assuming every file left in `bazel-bin` is current.
+Only consume hashes from a successful build of the `paq_files` output group.
+A failed or cancelled build can leave older `.paq` files in place; their presence
+does not indicate success. When using build events, check the paq aspect's
+completion status as well as the target's.
 
 ## Verify a Hash
 
@@ -139,11 +143,15 @@ Run the test suite:
 bazel test //tests/... --test_output=all
 ```
 
-On Linux, verify incremental changes, non-sandboxed execution, and link failures:
+Verify directory and file changes, symlink failures, local execution, and disk-cache
+restoration in a temporary consumer workspace:
 
 ```bash
 python tests/integration_test.py
 ```
+
+CI runs this check on Linux, macOS, and Windows. On Windows, set `BAZEL_SH` to
+your Bash executable and enable symlink creation, as in the CI configuration.
 
 ## License
 

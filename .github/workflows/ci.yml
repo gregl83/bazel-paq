@@ -84,6 +84,5 @@ jobs:
         shell: pwsh
         run: bazel --windows_enable_symlinks test //tests/... --shell_executable="$env:BAZEL_SH" --enable_runfiles --action_env=PATH --test_output=all
 
-      - name: Verify Incremental Hashes and Link Failures
-        if: runner.os == 'Linux'
-        run: python3 tests/integration_test.py
+      - name: Verify Incremental Hashes, Link Failures, and Cache Restoration
+        run: python tests/integration_test.py

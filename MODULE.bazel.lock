@@ -190,7 +190,7 @@
   "moduleExtensions": {
     "//:extensions.bzl%paq_extension": {
       "os:linux,arch:amd64": {
-        "bzlTransitiveDigest": "Q/Zwh29oCByNIK5ISxKHYKhtLpvYtr24gI3WsVhdRRQ=",
+        "bzlTransitiveDigest": "qKjNWOudaEqoHtKUHSj9K3+KiF1CnPJY9ncOqYy5qVQ=",
         "usagesDigest": "5KS1lUMb3XCl0o+FtTQD2J7JZODXAsxIhSV+cdQn6GI=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"

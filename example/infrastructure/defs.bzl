@@ -25,7 +25,8 @@ def _deployment_impl(ctx):
         """,
     )
     ctx.actions.write(log, "")
-    ctx.actions.symlink(output = link, target_path = templates.basename)
+    # Windows needs the directory type even before templates has been built.
+    ctx.actions.symlink(output = link, target_path = templates.basename, target_type = "directory")
     return [DefaultInfo(files = depset([templates, pending, log, link]))]
 
 deployment = rule(

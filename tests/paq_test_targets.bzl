@@ -27,6 +27,7 @@ def _symlink_impl(ctx):
     ctx.actions.symlink(
         output = output,
         target_path = ctx.attr.target_path,
+        target_type = ctx.attr.target_type,
     )
 
     files = []
@@ -40,6 +41,7 @@ symlink = rule(
     attrs = {
         "out": attr.string(mandatory = True),
         "target_path": attr.string(mandatory = True),
+        "target_type": attr.string(default = "file", values = ["file", "directory"]),
         "srcs": attr.label_list(),
     },
 )
@@ -89,3 +91,25 @@ forward = rule(
     implementation = _forward_impl,
     attrs = {"artifacts": attr.label(mandatory = True)},
 )
+
+def _dictionary_forward_impl(ctx):
+    deps = ctx.attr.by_label.keys() + ctx.attr.by_name.values()
+    return [DefaultInfo(files = depset(transitive = [dep[DefaultInfo].files for dep in deps]))]
+
+dictionary_forward = rule(
+    implementation = _dictionary_forward_impl,
+    attrs = {
+        "by_label": attr.label_keyed_string_dict(),
+        "by_name": attr.string_keyed_label_dict(),
+    },
+)
+
+def _named_files_impl(ctx):
+    files = []
+    for name in ctx.attr.names:
+        output = ctx.actions.declare_file(ctx.label.name + "/" + name)
+        ctx.actions.write(output, "alpha\n")
+        files.append(output)
+    return [DefaultInfo(files = depset(files))]
+
+named_files = rule(implementation = _named_files_impl, attrs = {"names": attr.string_list()})

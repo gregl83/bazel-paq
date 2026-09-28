@@ -15,6 +15,44 @@ paq_applier = rule(
     },
 )
 
+def _hash_manifest_impl(ctx):
+    artifacts = depset(transitive = [src[DefaultInfo].files for src in ctx.attr.srcs]).to_list()
+    manifest = ctx.actions.declare_file(ctx.label.name + ".manifest")
+    records = [str(len(ctx.attr.expected)), str(len(artifacts))]
+    for path in sorted(ctx.attr.expected):
+        records.extend([path, ctx.attr.expected[path]])
+    records.extend([artifact.short_path for artifact in artifacts])
+    # NUL-delimited data avoids Make expansion, shell quoting, and the Windows
+    # shell launcher's extra command-line parsing of artifact names.
+    ctx.actions.write(manifest, "\000".join(records) + "\000")
+    return [DefaultInfo(
+        files = depset([manifest]),
+        runfiles = ctx.runfiles(files = artifacts),
+    )]
+
+_hash_manifest = rule(
+    implementation = _hash_manifest_impl,
+    attrs = {
+        "srcs": attr.label_list(allow_files = True),
+        "expected": attr.string_dict(),
+    },
+)
+
+def artifact_hash_test(name, artifacts, expected):
+    """Check artifact contents without passing their names through the launcher."""
+    _hash_manifest(
+        name = name + "_manifest",
+        srcs = artifacts,
+        expected = expected,
+        testonly = True,
+    )
+    sh_test(
+        name = name,
+        srcs = ["//tests:assert_paq.sh"],
+        data = [":" + name + "_manifest"],
+        args = ["$(location :" + name + "_manifest)"],
+    )
+
 def hash_test(name, target_under_test, expected):
     """Compare every output hash by artifact path, including output count."""
     paq_applier(
@@ -22,9 +60,4 @@ def hash_test(name, target_under_test, expected):
         deps = [target_under_test],
         testonly = True,
     )
-    sh_test(
-        name = name,
-        srcs = ["//tests:assert_paq.sh"],
-        data = [":" + name + "_paq"],
-        args = [path + "=" + expected[path] for path in sorted(expected)] + ["--", "$(locations :" + name + "_paq)"],
-    )
+    artifact_hash_test(name, [":" + name + "_paq"], expected)
