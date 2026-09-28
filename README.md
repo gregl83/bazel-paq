@@ -47,7 +47,7 @@ Build your targets:
 bazel build --config=paq //...
 ```
 
-The aspect downloads paq automatically and adds hashes alongside your outputs.
+The aspect downloads [paq](https://github.com/gregl83/paq) automatically and adds hashes alongside your outputs.
 No changes to individual build rules are needed.
 
 To run without a `.bazelrc` configuration:
@@ -87,7 +87,7 @@ returns their sidecars in the `paq_files` output group.
 
 - **Independent outputs:** each generated artifact gets its own hash. A directory
   artifact gets one hash for its tree, rather than a hash for each child.
-- **Followed symlinks:** paq 2.0.0 runs with `--follow`. Referents must be available
+- **Followed symlinks:** [paq](https://github.com/gregl83/paq) 2.0.0 runs with `--follow`. Referents must be available
   through declared outputs or dependencies. Broken links and cycles fail the
   build. A link and its referent have the same fingerprint.
 - **Shared artifacts:** filegroups and other forwarding rules reuse hashes from
@@ -116,11 +116,11 @@ cat bazel-bin/service/server.paq
 ```
 
 The printed fingerprint should match the JSON string in the `.paq` file. Use the
-same paq version as the aspect; its fingerprints are not raw `b3sum` checksums.
+same [paq](https://github.com/gregl83/paq) version as the aspect; its fingerprints are not raw `b3sum` checksums.
 
 ## Upgrading from v1
 
-paq v2 fingerprints are incompatible with v1. Regenerate your stored baselines.
+[paq](https://github.com/gregl83/paq) v2 fingerprints are incompatible with v1. Regenerate your stored baselines.
 Targets with multiple outputs now receive one adjacent hash per artifact instead
 of a shared `.paq` file. Update consumers accordingly and start with a clean
 output tree to avoid discovering obsolete hash files.
