@@ -6,34 +6,33 @@
 
 **Know which Bazel build artifacts changed.**
 
-`bazel-paq` adds a content hash beside each generated directory or file. Compare
-those hashes across builds to decide what to deploy, upload, or keep unchanged.
-
-No changes to individual build rules are needed.
-
-```text
-bazel-bin/service/
-├── server
-├── server.paq
-├── config.json
-├── config.json.paq
-├── assets/
-└── assets.paq
-```
-
-> Change a configuration file, and its hash changes. Leave the service binary
-> unchanged, and its hash stays the same. Your tooling can upload only what changed.
-
-Each `.paq` contains one JSON string: a `BLAKE3`-based fingerprint of its artifact.
-A target producing several artifacts gets a separate hash for each one. A
-directory output gets one recursive hash, stored **outside** the directory.
+`bazel-paq` adds a `.paq` content hash beside each generated directory or file.
+Your deployment or upload tooling can compare these fingerprints across builds
+and transfer only changed artifacts.
 
 Hashing is powered by [paq](https://github.com/gregl83/paq/blob/v2.0.0/README.md#performance),
 which averaged **73.8 ms to hash the Go programming language repository**
 (157 MB across 14,490 files) in its published standalone benchmark.
 
-Your deployment system chooses how to group artifacts and act on changes.
-`bazel-paq` supplies the fingerprints as part of the build.
+No changes to individual build rules are needed. Add a module and a build
+configuration; the aspect downloads paq automatically.
+
+```text
+bazel-bin/service/
+├── assets/
+├── assets.paq
+├── server
+├── server.paq
+├── config.json
+└── config.json.paq
+```
+
+> Change a configuration file, and its hash changes. Leave the service binary
+> unchanged, and its hash stays the same. Your tooling can upload only what changed.
+
+Each `.paq` contains one JSON string: a `BLAKE3`-based fingerprint. Directory
+outputs get one recursive hash, stored **outside** the directory. Multiple
+outputs from one target each get their own hash.
 
 ## Quick Start
 
@@ -55,8 +54,6 @@ Build your targets:
 ```bash
 bazel build --config=paq //...
 ```
-
-The aspect downloads [paq](https://github.com/gregl83/paq) automatically and adds hashes alongside your outputs.
 
 To run without a `.bazelrc` configuration:
 
@@ -110,9 +107,10 @@ Bazel may omit empty subdirectories when materializing directory artifacts in a
 sandbox or from a cache. Use an archive output when preserving those empty
 subdirectories matters.
 
-Hash files describe artifact contents. Consumers are responsible for tracking
-artifact membership and detecting removals; use the current build's output
-inventory rather than assuming every file left in `bazel-bin` is current.
+Your deployment system chooses how to group artifacts and act on changes.
+`bazel-paq` supplies the fingerprints as part of the build. Consumers track
+artifact membership and removals using the current build's output inventory,
+rather than assuming every file left in `bazel-bin` is current.
 
 ## Verify a Hash
 
