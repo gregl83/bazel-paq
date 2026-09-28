@@ -6,7 +6,7 @@
 
 **Know which Bazel build artifacts changed.**
 
-bazel-paq adds a content hash beside each generated directory or file. Compare
+`bazel-paq` adds a content hash beside each generated directory or file. Compare
 those hashes across builds to decide what to deploy, upload, or keep unchanged.
 
 ```text
@@ -24,7 +24,7 @@ A target producing several artifacts gets a separate hash for each one. A
 directory output gets one recursive hash, stored **outside** the directory.
 
 Your deployment system chooses how to group artifacts and act on changes.
-bazel-paq supplies the fingerprints as part of the build.
+`bazel-paq` supplies the fingerprints as part of the build.
 
 ## Quick Start
 
