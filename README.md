@@ -111,10 +111,12 @@ Your deployment system chooses how to group artifacts and act on changes.
 `bazel-paq` supplies the fingerprints as part of the build. Consumers track
 artifact membership and removals using the current build's output inventory,
 rather than assuming every file left in `bazel-bin` is current.
-Only consume hashes from a successful build of the `paq_files` output group.
-A failed or cancelled build can leave older `.paq` files in place; their presence
-does not indicate success. When using build events, check the paq aspect's
-completion status as well as the target's.
+
+> [!WARNING]
+> **Only consume hashes from a successful build of the `paq_files` output group.**
+> A failed or cancelled build can leave older `.paq` files in place; their presence
+> does not indicate success. When using build events, check the paq aspect's
+> completion status as well as the target's.
 
 ## Verify a Hash
 
