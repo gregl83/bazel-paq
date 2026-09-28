@@ -14,6 +14,9 @@ user.bazelrc
 # Aspect Bazel build rules
 .aspect
 
+# Agent Workflows
+patches
+
 # Jetbrains
 .idea
 

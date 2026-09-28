@@ -16,20 +16,15 @@ paq_applier = rule(
 )
 
 def hash_test(name, target_under_test, expected):
-    # apply aspect to output
+    """Compare every output hash by artifact path, including output count."""
     paq_applier(
         name = name + "_paq",
         deps = [target_under_test],
         testonly = True,
     )
-
-    # test hash using assert_paq.sh
     sh_test(
         name = name,
         srcs = ["//tests:assert_paq.sh"],
         data = [":" + name + "_paq"],
-        args = [
-            "$(location :" + name + "_paq)",
-            expected,
-        ],
+        args = [path + "=" + expected[path] for path in sorted(expected)] + ["--", "$(locations :" + name + "_paq)"],
     )

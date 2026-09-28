@@ -7,7 +7,7 @@ import sys
 # repository configuration
 REPO_OWNER = "gregl83"
 REPO_NAME = "paq"
-REPO_TAG = "v1.5.0"
+REPO_TAG = "v2.0.0"
 API_URL = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases/tags/{REPO_TAG}"
 
 # mapping repository artifacts to bazel keys
@@ -51,6 +51,8 @@ def main():
     results = {}
     for asset in assets:
         name = asset["name"].lower()
+        if not name.endswith(".zip"):
+            continue
         url = asset["browser_download_url"]
         
         # find which platform this asset belongs to

@@ -77,9 +77,13 @@ jobs:
       # Each matrix job runs exactly one of these platform-specific test steps.
       - name: Run Tests on Linux and macOS
         if: runner.os != 'Windows'
-        run: bazel test //tests:all --action_env=PATH --test_output=all
+        run: bazel test //tests/... --action_env=PATH --test_output=all
 
       - name: Run Tests on Windows
         if: runner.os == 'Windows'
         shell: pwsh
-        run: bazel --windows_enable_symlinks test //tests:all --shell_executable="$env:BAZEL_SH" --enable_runfiles --action_env=PATH --test_output=all
+        run: bazel --windows_enable_symlinks test //tests/... --shell_executable="$env:BAZEL_SH" --enable_runfiles --action_env=PATH --test_output=all
+
+      - name: Verify Incremental Hashes and Link Failures
+        if: runner.os == 'Linux'
+        run: python3 tests/integration_test.py
