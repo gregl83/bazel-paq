@@ -1,7 +1,6 @@
-load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load(":paq_platform_test.bzl", "supported_platforms_test", "unsupported_platform_test")
 load(":paq_aspect_graph_test.bzl", "graph_test")
-load(":paq_aspect_hash_test.bzl", "hash_test")
+load(":paq_aspect_hash_test.bzl", "artifact_hash_test", "hash_test")
 load(":paq_test_targets.bzl", "dictionary_forward", "directory", "edge_outputs", "forward", "mixed_outputs", "named_files", "symlink")
 
 genrule(
@@ -324,17 +323,15 @@ unsupported_platform_test(
 ]
 
 # Building the fixture's public target catches missing executable references.
-sh_test(
+artifact_hash_test(
     name = "test_windows_executable_layout",
-    srcs = ["assert_paq.sh"],
-    data = ["@paq_windows_fixture//:binary"],
-    args = ["paq_executable.exe=fixture", "--", "$(location @paq_windows_fixture//:binary)"],
+    artifacts = ["@paq_windows_fixture//:binary"],
+    expected = {"paq_executable.exe": "fixture"},
 )
-sh_test(
+artifact_hash_test(
     name = "test_unix_executable_layout",
-    srcs = ["assert_paq.sh"],
-    data = ["@paq_unix_fixture//:binary"],
-    args = ["paq_executable=fixture", "--", "$(location @paq_unix_fixture//:binary)"],
+    artifacts = ["@paq_unix_fixture//:binary"],
+    expected = {"paq_executable": "fixture"},
 )
 
 alias(name = "single_file_alias", actual = ":single_file")
