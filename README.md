@@ -4,156 +4,139 @@
 
 # bazel-paq
 
-[Bazel aspect](https://bazel.build/extending/aspects) for computing target output hashes.
+**Know which Bazel build artifacts changed.**
 
-Easily track build deltas by comparing output hashes with deployed artifacts or previous builds.
-
-## Usage
-
-### Workspace Configuration
-
-#### 1. Add Module Dependency
-
-Add the following to the dependency section the workspace `MODULE.bazel`:
+bazel-paq adds a content hash beside each generated directory or file. Compare
+those hashes across builds to decide what to deploy, upload, or keep unchanged.
 
 ```text
+bazel-bin/service/
+├── server
+├── server.paq
+├── config.json
+├── config.json.paq
+├── assets/
+└── assets.paq
+```
+
+Each `.paq` contains one JSON string: a BLAKE3-based fingerprint of its artifact.
+A target producing several artifacts gets a separate hash for each one. A
+directory output gets one recursive hash, stored **outside** the directory.
+
+Your deployment system chooses how to group artifacts and act on changes.
+bazel-paq supplies the fingerprints as part of the build.
+
+## Quick Start
+
+Add the module to `MODULE.bazel`:
+
+```starlark
 bazel_dep(name = "bazel_paq", version = "2.0.0")
 ```
 
-#### 2. Add Load Definition
-
-Add the following to the workspace `defs.bzl`:
-
-```text
-load("@bazel_paq//:defs.bzl", "paq_aspect")
-```
-
-### Executing Builds
-
-#### Short Command
-
-Add the following to the workspace `.bazelrc` configuration file:
+Add a build configuration to `.bazelrc`:
 
 ```text
 build:paq --aspects=@bazel_paq//:defs.bzl%paq_aspect
 build:paq --output_groups=+paq_files
 ```
 
-Execute build:
+Build your targets:
 
 ```bash
 bazel build --config=paq //...
 ```
 
-#### Long Command
+The aspect downloads paq automatically and adds hashes alongside your outputs.
+No changes to individual build rules are needed.
+
+To run without a `.bazelrc` configuration:
 
 ```bash
 bazel build //... --aspects=@bazel_paq//:defs.bzl%paq_aspect --output_groups=+paq_files
 ```
 
-### Executing Tests
+## Example Workspace
+
+The [example workspace](example) demonstrates configuration files, infrastructure
+templates, a Python service, and a Rust executable. It includes directory outputs,
+directory and file symlinks, empty artifacts, and a target with multiple outputs.
+
+From a checkout of this repository:
+
+```bash
+cd example
+bazel build --config=paq //...
+```
+
+See its [build output](example/README.md#build-output) for the complete layout.
+The tree at the top of this README is a simplified illustration.
+
+## Aspect Output
+
+The aspect hashes generated artifacts exposed through `DefaultInfo.files` and
+returns their sidecars in the `paq_files` output group.
+
+| Output artifact | Hash file | What is hashed |
+| --- | --- | --- |
+| Directory artifact | `<directory-name>.paq`, beside the directory | Recursive contents and relative paths |
+| Regular or executable file | `<filename>.paq` | File contents |
+| Symlink to a directory | `<link-name>.paq` | Referenced directory tree |
+| Symlink to a file | `<link-name>.paq` | Referenced file contents |
+| Source file or source symlink | None | Skipped |
+
+- **Independent outputs:** each generated artifact gets its own hash. A directory
+  artifact gets one hash for its tree, rather than a hash for each child.
+- **Followed symlinks:** paq 2.0.0 runs with `--follow`. Referents must be available
+  through declared outputs or dependencies. Broken links and cycles fail the
+  build. A link and its referent have the same fingerprint.
+- **Shared artifacts:** filegroups and other forwarding rules reuse hashes from
+  their dependencies, including across packages.
+- **Content fingerprints:** hidden entries and empty artifacts are included.
+  Permissions, ownership, timestamps, and other filesystem metadata are excluded.
+
+The `.paq` suffix is reserved for aspect-generated hashes. Build rules must not
+produce conflicting paths.
+
+Bazel may omit empty subdirectories when materializing directory artifacts in a
+sandbox or from a cache. Use an archive output when preserving those empty
+subdirectories matters.
+
+Hash files describe artifact contents. Consumers are responsible for tracking
+artifact membership and detecting removals; use the current build's output
+inventory rather than assuming every file left in `bazel-bin` is current.
+
+## Verify a Hash
+
+With [paq](https://github.com/gregl83/paq) 2.0.0 installed:
+
+```bash
+paq --follow bazel-bin/service/server
+cat bazel-bin/service/server.paq
+```
+
+The printed fingerprint should match the JSON string in the `.paq` file. Use the
+same paq version as the aspect; its fingerprints are not raw `b3sum` checksums.
+
+## Upgrading from v1
+
+paq v2 fingerprints are incompatible with v1. Regenerate your stored baselines.
+Targets with multiple outputs now receive one adjacent hash per artifact instead
+of a shared `.paq` file. Update consumers accordingly and start with a clean
+output tree to avoid discovering obsolete hash files.
+
+## Development
+
+Run the test suite:
 
 ```bash
 bazel test //tests/... --test_output=all
 ```
 
-On Linux, also run `python tests/integration_test.py` to verify incremental changes,
-non-sandboxed execution, and build failures for broken links and cycles.
+On Linux, verify incremental changes, non-sandboxed execution, and link failures:
 
-## Aspect Output
-
-The aspect produces one adjacent `.paq` file for **each generated artifact** in
-`DefaultInfo.files`, even when a target exposes several outputs.
-
-| Output artifact | Hash output | Hash input |
-| --- | --- | --- |
-| Regular or executable file | `<filename>.paq` | File contents |
-| Directory artifact | `<directory-name>.paq`, beside the directory | Its recursive contents and relative paths |
-| Symlink to a file | `<link-name>.paq` | Referenced file contents |
-| Symlink to a directory | `<link-name>.paq` | Referenced directory tree |
-| Source file or source symlink | None | Skipped |
-
-Empty files and empty directory artifacts are supported. Hidden entries are
-included. Executable bits, ownership, timestamps, and other filesystem metadata
-are not hashed. Bazel may omit empty nested directories when materializing a
-sandbox or cached tree artifact; they are not a reliable part of a directory's
-tracked contents. Use an archive output if empty subdirectories must be preserved.
-
-Every invocation uses paq **2.0.0** with `--follow`. Link targets must be available
-through declared outputs or dependencies. Broken links and cycles fail the hash
-action and the build. Links are fingerprinted by their referents, not their link
-text; a link and its referent can therefore have identical hashes.
-
-Multiple outputs are hashed independently. There is no aggregate target hash or
-common-parent directory scan. For example, a target producing `server` and
-`config.json` produces `server.paq` and `config.json.paq`. A directory artifact
-receives one recursive hash, not a separate hash for each child.
-
-Filegroups and other forwarding rules reuse hashes from their dependencies,
-including across packages. The `paq_files` output group contains the hashes for
-the target's generated artifacts. The `.paq` suffix is reserved for these hash
-files; build rules must not generate conflicting paths.
-
-Each `.paq` file is valid JSON containing one BLAKE3-based fingerprint in double
-quotes. It records no target membership or deletion events. Consumers constructing
-deployment snapshots must record the complete artifact inventory separately.
-
-### Migration
-
-paq v2 fingerprints are incompatible with v1; regenerate existing baselines.
-Multiple-output targets now produce an adjacent hash for every artifact instead
-of a shared `.paq` or `<target-name>.paq`. Update consumers to discover those
-per-artifact hashes, and use a clean output tree when migrating so obsolete hash
-files are not mistaken for current outputs.
-
-## Hashing Algorithm
-
-The [paq](https://github.com/gregl83/paq) executable used in `bazel-paq` is powered by the `blake3` hashing algorithm.
-
-#### Output Hash Validation
-
-1. **Install:** Make the [paq](https://github.com/gregl83/paq) executable available on validation system.
-2. **Compute:** Run `paq --follow <artifact>` with paq 2.0.0 for each generated file or directory.
-3. **Compare:** Open respective `.paq` build output and validate it equals computed hash from Step 2.
-
-## Example Workspace
-
-The [example](example) directory contains a complete Bazel module workspace demonstrating `bazel-paq` usage.
-
-### Output Structure
-
-The example covers regular and executable files, directory artifacts, file and
-directory symlinks, empty artifacts, and multiple outputs from one target.
-Auxiliary manifests, runfiles, and intermediate build files are omitted below;
-symlink destinations are shortened for readability.
-
-```text
-bazel-bin
-|-- configuration
-|   |-- config.out.json
-|   |-- config.out.json.paq
-|   |-- config.link.json -> config.out.json
-|   `-- config.link.json.paq
-|-- infrastructure
-|   |-- templates.tar
-|   |-- templates.tar.paq
-|   |-- templates.out/
-|   |   |-- dev-template.yaml
-|   |   |-- prod-template.yaml
-|   |   `-- test-template.yaml
-|   |-- templates.out.paq
-|   |-- templates.link -> templates.out/
-|   |-- templates.link.paq
-|   |-- pending/
-|   |-- pending.paq
-|   |-- deployment.log
-|   `-- deployment.log.paq
-|-- python-service
-|   |-- app
-|   `-- app.paq
-`-- rust-command
-    |-- command
-    `-- command.paq
+```bash
+python tests/integration_test.py
 ```
 
 ## License
