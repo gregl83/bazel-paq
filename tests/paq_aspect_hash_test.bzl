@@ -1,3 +1,4 @@
+load("@bazel_skylib//lib:shell.bzl", "shell")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//:defs.bzl", "paq_aspect")
 
@@ -26,5 +27,5 @@ def hash_test(name, target_under_test, expected):
         name = name,
         srcs = ["//tests:assert_paq.sh"],
         data = [":" + name + "_paq"],
-        args = [path + "=" + expected[path] for path in sorted(expected)] + ["--", "$(locations :" + name + "_paq)"],
+        args = [shell.quote((path + "=" + expected[path]).replace("$", "$$")) for path in sorted(expected)] + ["--", "$(locations :" + name + "_paq)"],
     )

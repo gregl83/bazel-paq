@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
-"""Exercise incremental hashes and failed link following in a fresh consumer.
+"""Exercise incremental changes, failed builds, and cache restoration.
 
 Run directly with Python, outside a Bazel test sandbox.
 """
 import json
 import os
 from pathlib import Path
+import re
+import shutil
 import subprocess
 import tempfile
 
 REPO = Path(__file__).resolve().parents[1]
+ARTIFACTS = ["first", "second", "link", "chain", "tree.out", "tree.link"]
 
 
 def main():
@@ -18,80 +21,158 @@ def main():
         (workspace / "MODULE.bazel").write_text(
             'module(name = "paq_contract_test")\n'
             'bazel_dep(name = "bazel_paq", version = "2.0.0")\n'
-            f'local_path_override(module_name = "bazel_paq", path = {json.dumps(str(REPO))})\n'
+            f'local_path_override(module_name = "bazel_paq", path = {json.dumps(str(REPO))})\n',
+            encoding="utf-8",
         )
-        (workspace / "BUILD.bazel").write_text('''
-load(":outputs.bzl", "outputs", "bad_link")
-outputs(name = "service", srcs = ["first.txt", "second.txt"])
-bad_link(name = "broken", destination = "missing")
-bad_link(name = "cycle", destination = "cycle")
-''')
-        (workspace / "outputs.bzl").write_text('''
-def _outputs(ctx):
-    files = []
-    for i, src in enumerate(ctx.files.srcs):
-        out = ctx.actions.declare_file("first" if i == 0 else "second")
-        ctx.actions.run_shell(inputs = [src], outputs = [out],
-            arguments = [src.path, out.path], command = 'cp "$1" "$2"')
-        files.append(out)
-    link = ctx.actions.declare_symlink("link")
-    ctx.actions.symlink(output = link, target_path = "first")
-    files.append(link)
-    return [DefaultInfo(files = depset(files))]
-outputs = rule(implementation = _outputs, attrs = {"srcs": attr.label_list(allow_files = True)})
+        shutil.copyfile(REPO / "tests/integration_outputs.bzl", workspace / "outputs.bzl")
 
-def _bad_link(ctx):
-    link = ctx.actions.declare_symlink(ctx.label.name)
-    ctx.actions.symlink(output = link, target_path = ctx.attr.destination)
-    return [DefaultInfo(files = depset([link]))]
-bad_link = rule(implementation = _bad_link, attrs = {"destination": attr.string()})
-''')
-        (workspace / "first.txt").write_text("first version\n")
-        (workspace / "second.txt").write_text("unchanged\n")
+        def write_build(link_target="first"):
+            (workspace / "BUILD.bazel").write_text('''
+load(":outputs.bzl", "outputs", "link_output")
+outputs(name = "service", srcs = ["first.txt", "second.txt"],
+        tree_srcs = glob(["tree/**"]), link_target = %s)
+link_output(name = "broken", out = "broken", destination = "missing")
+link_output(name = "cycle", out = "cycle", destination = "cycle")
+genrule(name = "external", srcs = ["external.txt"], outs = ["external/value"],
+        cmd = "cp $(SRCS) $@")
+link_output(name = "external_link", out = "links/external", destination = "../external/value", srcs = [":external"])
+''' % json.dumps(link_target), encoding="utf-8")
+
+        write_build()
+        (workspace / "first.txt").write_text("first version\n", encoding="utf-8")
+        (workspace / "second.txt").write_text("unchanged\n", encoding="utf-8")
+        (workspace / "external.txt").write_text("external version one\n", encoding="utf-8")
+        tree = workspace / "tree"
+        (tree / "nested").mkdir(parents=True)
+        (tree / "nested/item").write_text("original\n", encoding="utf-8")
         env = dict(os.environ, USE_BAZEL_VERSION="9.2.0")
-        bazel = ["bazel", "--output_base=" + str(workspace / "bazel-state")]
+        bazel = [shutil.which("bazel") or "bazel", "--output_base=" + str(workspace / "bazel-state")]
+        windows = os.name == "nt"
+        if windows:
+            bazel.append("--windows_enable_symlinks")
+        default_strategy = "local" if windows else "sandboxed"
+        common = ["--action_env=PATH"]
+        if windows:
+            common += ["--enable_runfiles", "--shell_executable=" + env["BAZEL_SH"]]
+        build_number = 0
+        out = None
 
-        def build(target, strategy="sandboxed", succeeds=True):
-            result = subprocess.run(
-                bazel + ["build", target,
-                         "--aspects=@bazel_paq//:defs.bzl%paq_aspect",
-                         "--output_groups=paq_files", "--strategy=PaqAspect=" + strategy],
-                cwd=workspace, env=env, text=True, capture_output=True,
-            )
-            if (result.returncode == 0) != succeeds:
-                raise AssertionError(result.stdout + result.stderr)
-            return result.stdout + result.stderr
+        def invoke(args):
+            result = subprocess.run(bazel + args, cwd=workspace, env=env,
+                                    text=True, encoding="utf-8", errors="replace", capture_output=True)
+            return result.returncode, result.stdout + result.stderr
+
+        def build(target, strategy=default_strategy, succeeds=True):
+            nonlocal build_number
+            build_number += 1
+            events = workspace / ("events-" + str(build_number) + ".json")
+            code, log = invoke(["build", target,
+                                "--aspects=@bazel_paq//:defs.bzl%paq_aspect",
+                                "--output_groups=paq_files", "--strategy=PaqAspect=" + strategy,
+                                "--disk_cache=" + str(workspace / "disk-cache"),
+                                "--build_event_json_file=" + str(events)] + common)
+            assert (code == 0) == succeeds, log
+            completions = [event["completed"] for line in events.read_text(encoding="utf-8").splitlines()
+                           if "completed" in (event := json.loads(line))]
+            assert completions, log
+            if not succeeds:
+                assert any(not event.get("success", False) for event in completions), log
+            return log
+
+        def fingerprint(name):
+            return json.loads((out / (name + ".paq")).read_text(encoding="utf-8"))
 
         def hashes():
-            return {name: json.loads((workspace / "bazel-bin" / (name + ".paq")).read_text())
-                    for name in ["first", "second", "link"]}
+            return {name: fingerprint(name) for name in ARTIFACTS}
+
+        def check_links(values):
+            assert values["first"] == values["link"] == values["chain"]
+            assert values["tree.out"] == values["tree.link"]
 
         try:
             build("//:service")
+            # bazel-bin is not necessarily a workspace symlink on every host.
+            info = subprocess.run(bazel + ["info", "bazel-bin"], cwd=workspace, env=env,
+                                  text=True, capture_output=True, check=True)
+            out = Path(info.stdout.strip())
             before = hashes()
-            assert before["first"] == before["link"]
-            (workspace / "first.txt").write_text("second version\n")
+            check_links(before)
+            (workspace / "first.txt").write_text("second version\n", encoding="utf-8")
             build("//:service")
             after = hashes()
             assert after["first"] != before["first"]
             assert after["second"] == before["second"]
-            assert after["link"] == after["first"]
+            assert after["tree.out"] == before["tree.out"]
+            check_links(after)
+            print("PASS: independent outputs and chained links track content changes", flush=True)
 
-            # Force new actions without sandboxing, with unrelated files and
-            # an old aggregate hash present in the same output directory.
-            (workspace / "bazel-bin" / "unrelated").write_text("noise")
-            (workspace / "bazel-bin" / ".paq").write_text("old hash")
-            for name in after:
-                (workspace / "bazel-bin" / (name + ".paq")).unlink()
+            # Every mutation changes the tree fingerprint and its linked view,
+            # while unrelated file outputs retain their fingerprints.
+            mutations = [
+                ("modify", lambda: (tree / "nested/item").write_text("modified\n", encoding="utf-8")),
+                ("add", lambda: (tree / "added").write_text("new\n", encoding="utf-8")),
+                ("rename", lambda: (tree / "added").rename(tree / "renamed")),
+                ("delete", lambda: (tree / "renamed").unlink()),
+                ("hidden", lambda: (tree / ".hidden").write_text("hidden\n", encoding="utf-8")),
+            ]
+            for name, mutate in mutations:
+                previous = hashes()
+                mutate()
+                build("//:service")
+                current = hashes()
+                assert current["tree.out"] != previous["tree.out"], name
+                assert current["first"] == previous["first"], name
+                assert current["second"] == previous["second"], name
+                check_links(current)
+            print("PASS: directory modify/add/rename/delete/hidden changes", flush=True)
+
+            build("//:external_link")
+            external_before = fingerprint("links/external")
+            (workspace / "external.txt").write_text("external version two\n", encoding="utf-8")
+            build("//:external_link")
+            assert fingerprint("links/external") != external_before
+            print("PASS: link to a declared dependency outside its output directory", flush=True)
+
+            # Force actions to run locally, avoiding both action and disk caches.
+            expected = hashes()
+            (out / "unrelated").write_text("noise", encoding="utf-8")
+            (out / ".paq").write_text("old hash", encoding="utf-8")
+            for artifact in ARTIFACTS:
+                (out / (artifact + ".paq")).unlink()
+            shutil.rmtree(workspace / "disk-cache", ignore_errors=True)
             build("//:service", strategy="local")
-            assert hashes() == after
+            assert hashes() == expected
+            print("PASS: local execution excludes neighboring outputs and old hashes", flush=True)
+
+            # Remove the complete output tree, then require disk-cache hits and
+            # compare all restored directory/file/link sidecars with the originals.
+            code, log = invoke(["clean"])
+            assert code == 0, log
+            assert not (out / "tree.out.paq").exists()
+            log = build("//:service")
+            assert re.search(r"[1-9][0-9]* disk cache hit", log), log
+            assert hashes() == expected
+            assert (out / "tree.out/nested/item").read_text(encoding="utf-8") == "modified\n"
+            print("PASS: directory and file outputs and their hashes restore from disk cache", flush=True)
+
             for target in ["broken", "cycle"]:
                 log = build("//:" + target, succeeds=False)
                 assert "failed to hash" in log, log
-                assert not (workspace / "bazel-bin" / (target + ".paq")).exists()
-            print("PASS: independent artifact changes, followed-link changes, local isolation, broken links, cycles")
+                assert not (out / (target + ".paq")).exists()
+            for destination in ["missing", "link"]:
+                # A valid hash exists before each failure; it must not survive
+                # as an apparent successful result when following stops working.
+                write_build()
+                build("//:service")
+                assert (out / "link.paq").exists()
+                write_build(destination)
+                log = build("//:service", succeeds=False)
+                assert "failed to hash" in log, log
+                assert not (out / "link.paq").exists()
+                assert not (out / "chain.paq").exists()
+            print("PASS: broken links and cycles, including after a successful hash", flush=True)
         finally:
-            subprocess.run(bazel + ["shutdown"], cwd=workspace, env=env, capture_output=True)
+            invoke(["shutdown"])
 
 
 if __name__ == "__main__":

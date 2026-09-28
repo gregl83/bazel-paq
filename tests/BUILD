@@ -1,6 +1,8 @@
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load(":paq_platform_test.bzl", "supported_platforms_test", "unsupported_platform_test")
 load(":paq_aspect_graph_test.bzl", "graph_test")
 load(":paq_aspect_hash_test.bzl", "hash_test")
-load(":paq_test_targets.bzl", "directory", "edge_outputs", "forward", "mixed_outputs", "symlink")
+load(":paq_test_targets.bzl", "dictionary_forward", "directory", "edge_outputs", "forward", "mixed_outputs", "named_files", "symlink")
 
 genrule(
     name = "single_file",
@@ -289,3 +291,165 @@ graph_test(
 )
 
 exports_files(["assert_paq.sh"], visibility = ["//tests/forwarded:__pkg__"])
+
+supported_platforms_test(name = "test_supported_platforms")
+
+unsupported_platform_test(
+    name = "test_unknown_os",
+    os_name = "freebsd",
+    arch = "amd64",
+    message = "unsupported operating system: freebsd",
+)
+unsupported_platform_test(
+    name = "test_unknown_arch",
+    os_name = "linux",
+    arch = "riscv64",
+    message = "unsupported architecture: riscv64",
+)
+unsupported_platform_test(
+    name = "test_unpublished_macos_x86",
+    os_name = "mac os x",
+    arch = "i686",
+    message = "no paq binary found for platform: macos_x86",
+)
+[
+    unsupported_platform_test(
+        name = "test_unpublished_" + os_name + "_" + arch,
+        os_name = os_name,
+        arch = arch,
+        message = "no paq binary found for platform: " + os_name + "_arm64",
+    )
+    for os_name in ["linux", "windows"]
+    for arch in ["arm64", "aarch64"]
+]
+
+# Building the fixture's public target catches missing executable references.
+sh_test(
+    name = "test_windows_executable_layout",
+    srcs = ["assert_paq.sh"],
+    data = ["@paq_windows_fixture//:binary"],
+    args = ["paq_executable.exe=fixture", "--", "$(location @paq_windows_fixture//:binary)"],
+)
+sh_test(
+    name = "test_unix_executable_layout",
+    srcs = ["assert_paq.sh"],
+    data = ["@paq_unix_fixture//:binary"],
+    args = ["paq_executable=fixture", "--", "$(location @paq_unix_fixture//:binary)"],
+)
+
+alias(name = "single_file_alias", actual = ":single_file")
+filegroup(name = "nested_wrapper", srcs = [":single_file_wrapper"], testonly = True)
+filegroup(
+    name = "diamond_wrapper",
+    srcs = [":nested_wrapper", ":custom_wrapper", ":single_file_alias"],
+    testonly = True,
+)
+dictionary_forward(
+    name = "dictionary_keys",
+    by_label = {":single_file": "file"},
+    testonly = True,
+)
+dictionary_forward(
+    name = "dictionary_values",
+    by_name = {"file": ":single_file"},
+    testonly = True,
+)
+filegroup(
+    name = "mixed_sources",
+    srcs = [":single_file", "fixtures/single-file.json", "fixtures/single-symlink.json"],
+    testonly = True,
+)
+
+graph_test(
+    name = "test_single_file_alias",
+    target_under_test = ":single_file_alias",
+    expected = ["tests/single-file.json.paq"],
+)
+hash_test(
+    name = "test_single_file_alias_hash",
+    target_under_test = ":single_file_alias",
+    expected = {"tests/single-file.json.paq": "5bc94c0d67b5edf91b228a6efd7ef2743d00ab1cd7daea74c0a019f205eb281f"},
+)
+
+graph_test(
+    name = "test_nested_wrapper",
+    target_under_test = ":nested_wrapper",
+    expected = ["tests/single-file.json.paq"],
+)
+hash_test(
+    name = "test_nested_wrapper_hash",
+    target_under_test = ":nested_wrapper",
+    expected = {"tests/single-file.json.paq": "5bc94c0d67b5edf91b228a6efd7ef2743d00ab1cd7daea74c0a019f205eb281f"},
+)
+
+graph_test(
+    name = "test_diamond_wrapper",
+    target_under_test = ":diamond_wrapper",
+    expected = ["tests/single-file.json.paq"],
+)
+hash_test(
+    name = "test_diamond_wrapper_hash",
+    target_under_test = ":diamond_wrapper",
+    expected = {"tests/single-file.json.paq": "5bc94c0d67b5edf91b228a6efd7ef2743d00ab1cd7daea74c0a019f205eb281f"},
+)
+
+graph_test(
+    name = "test_dictionary_keys",
+    target_under_test = ":dictionary_keys",
+    expected = ["tests/single-file.json.paq"],
+)
+hash_test(
+    name = "test_dictionary_keys_hash",
+    target_under_test = ":dictionary_keys",
+    expected = {"tests/single-file.json.paq": "5bc94c0d67b5edf91b228a6efd7ef2743d00ab1cd7daea74c0a019f205eb281f"},
+)
+
+graph_test(
+    name = "test_dictionary_values",
+    target_under_test = ":dictionary_values",
+    expected = ["tests/single-file.json.paq"],
+)
+hash_test(
+    name = "test_dictionary_values_hash",
+    target_under_test = ":dictionary_values",
+    expected = {"tests/single-file.json.paq": "5bc94c0d67b5edf91b228a6efd7ef2743d00ab1cd7daea74c0a019f205eb281f"},
+)
+
+graph_test(
+    name = "test_mixed_sources",
+    target_under_test = ":mixed_sources",
+    expected = ["tests/single-file.json.paq"],
+)
+hash_test(
+    name = "test_mixed_sources_hash",
+    target_under_test = ":mixed_sources",
+    expected = {"tests/single-file.json.paq": "5bc94c0d67b5edf91b228a6efd7ef2743d00ab1cd7daea74c0a019f205eb281f"},
+)
+
+named_files(
+    name = "unusual_paths",
+    names = ["space name", "café", "semi;colon", "quote'name", "dollar$sign", "equals=name"],
+    testonly = True,
+)
+
+graph_test(
+    name = "test_unusual_paths",
+    target_under_test = ":unusual_paths",
+    expected = [
+        "tests/unusual_paths/space name.paq",
+        "tests/unusual_paths/café.paq",
+        "tests/unusual_paths/semi;colon.paq",
+        "tests/unusual_paths/quote'name.paq",
+        "tests/unusual_paths/dollar$sign.paq",
+        "tests/unusual_paths/equals=name.paq",
+    ],
+)
+
+hash_test(
+    name = "test_unusual_paths_hash",
+    target_under_test = ":unusual_paths",
+    expected = {
+        "tests/unusual_paths/" + name + ".paq": "ebf8fd661bef31689e3cc559e5119b134a2e9f12e893b5cb61b005f83dfe01b1"
+        for name in ["space name", "café", "semi;colon", "quote'name", "dollar$sign", "equals=name"]
+    },
+)

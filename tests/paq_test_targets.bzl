@@ -89,3 +89,25 @@ forward = rule(
     implementation = _forward_impl,
     attrs = {"artifacts": attr.label(mandatory = True)},
 )
+
+def _dictionary_forward_impl(ctx):
+    deps = ctx.attr.by_label.keys() + ctx.attr.by_name.values()
+    return [DefaultInfo(files = depset(transitive = [dep[DefaultInfo].files for dep in deps]))]
+
+dictionary_forward = rule(
+    implementation = _dictionary_forward_impl,
+    attrs = {
+        "by_label": attr.label_keyed_string_dict(),
+        "by_name": attr.string_keyed_label_dict(),
+    },
+)
+
+def _named_files_impl(ctx):
+    files = []
+    for name in ctx.attr.names:
+        output = ctx.actions.declare_file(ctx.label.name + "/" + name)
+        ctx.actions.write(output, "alpha\n")
+        files.append(output)
+    return [DefaultInfo(files = depset(files))]
+
+named_files = rule(implementation = _named_files_impl, attrs = {"names": attr.string_list()})

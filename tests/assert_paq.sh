@@ -8,8 +8,8 @@ done
 shift
 [[ "${#expected[@]}" -eq "$#" ]] || { echo "Unexpected number of hash files"; exit 1; }
 for entry in "${expected[@]}"; do
-    path="${entry%%=*}"
-    hash="${entry#*=}"
+    path="${entry%=*}"
+    hash="${entry##*=}"
     found=false
     for actual in "$@"; do
         if [[ "$actual" == "$path" || "$actual" == */"$path" ]]; then

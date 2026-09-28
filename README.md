@@ -139,11 +139,15 @@ Run the test suite:
 bazel test //tests/... --test_output=all
 ```
 
-On Linux, verify incremental changes, non-sandboxed execution, and link failures:
+Verify directory and file changes, symlink failures, local execution, and disk-cache
+restoration in a temporary consumer workspace:
 
 ```bash
 python tests/integration_test.py
 ```
+
+CI runs this check on Linux, macOS, and Windows. On Windows, set `BAZEL_SH` to
+your Bash executable and enable symlink creation, as in the CI configuration.
 
 ## License
 

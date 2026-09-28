@@ -34,9 +34,10 @@ PAQ_ARTIFACTS = {
     },
 }
 
-def _paq_extension_impl(ctx):
+def paq_platform_key(os_name, raw_arch):
+    """Resolve a host OS/architecture to a published paq platform."""
     # detect operating system
-    os_name = ctx.os.name.lower()
+    os_name = os_name.lower()
     if os_name.startswith("windows"):
         os_key = "windows"
     elif os_name.startswith("mac"):
@@ -46,13 +47,12 @@ def _paq_extension_impl(ctx):
     else:
         fail("unsupported operating system: " + os_name)
 
-    # detect architecture and map to x64/x86
-    raw_arch = ctx.os.arch.lower()
+    # Normalize aliases before checking which OS/architecture pairs are published.
+    raw_arch = raw_arch.lower()
     if raw_arch in ["x86_64", "amd64"]:
         arch_key = "x64"
     elif raw_arch in ["aarch64", "arm64"]:
-        if os_key == "macos":
-            arch_key = "arm64"
+        arch_key = "arm64"
     elif raw_arch in ["x86", "i386", "i686"]:
         arch_key = "x86"
     else:
@@ -62,14 +62,11 @@ def _paq_extension_impl(ctx):
     platform_key = "{}_{}".format(os_key, arch_key)
     if platform_key not in PAQ_ARTIFACTS:
         fail("no paq binary found for platform: " + platform_key)
-    artifact = PAQ_ARTIFACTS[platform_key]
+    return platform_key
 
-    # download and expose paq binary
-    http_archive(
-        name = "paq",
-        urls = [artifact["url"]],
-        sha256 = artifact["sha256"],
-        build_file_content = """
+def paq_build_file(binary_filename):
+    """Expose the platform executable through the same public binary target."""
+    return """
 genrule(
     name = "paq_chmod_x",
     srcs = ["{binary_filename}"],
@@ -84,9 +81,18 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 """.format(
-            binary_filename = artifact["binary"],
-            executable_filename = "paq_executable.exe" if artifact["binary"].endswith(".exe") else "paq_executable",
-        ),
+        binary_filename = binary_filename,
+        executable_filename = "paq_executable.exe" if binary_filename.endswith(".exe") else "paq_executable",
+    )
+
+def _paq_extension_impl(ctx):
+    platform_key = paq_platform_key(ctx.os.name, ctx.os.arch)
+    artifact = PAQ_ARTIFACTS[platform_key]
+    http_archive(
+        name = "paq",
+        urls = [artifact["url"]],
+        sha256 = artifact["sha256"],
+        build_file_content = paq_build_file(artifact["binary"]),
     )
 
 paq_extension = module_extension(
