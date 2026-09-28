@@ -80,7 +80,7 @@ genrule(
 
 filegroup(
     name = "binary",
-    srcs = [":paq_executable"],
+    srcs = [":paq_chmod_x"],
     visibility = ["//visibility:public"],
 )
 """.format(

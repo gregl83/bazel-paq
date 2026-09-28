@@ -203,7 +203,7 @@
     "@@bazel_paq+//:extensions.bzl%paq_extension": {
       "os:linux,arch:amd64": {
         "bzlTransitiveDigest": "lbdfFqE9OncTQ6aaJ9V65lEiSjw7mrmdPhrroaUHOCk=",
-        "usagesDigest": "LYaqa0ZK7tBKA7KDG0ICV0pEcOLa5y72TFfHqKdUkpc=",
+        "usagesDigest": "i6iIn93oU/BFn2Keehx5dWnzvwvxgLkLdr0/GqyN0zE=",
         "recordedInputs": [
           "REPO_MAPPING:bazel_paq+,bazel_tools bazel_tools"
         ],
@@ -479,7 +479,7 @@
     "@@rules_rust+//crate_universe:extension.bzl%crate": {
       "general": {
         "bzlTransitiveDigest": "9k0PJu5aPzhFsQY5cyRzSAq/XBWM9elGzaBQMMFrNvk=",
-        "usagesDigest": "CkPn492VYyuyDxUTsi1hp81cdw6i5i/cA4TTeBFS2pA=",
+        "usagesDigest": "YZZZMscScWWnAqgVEaaJ92Dpx7Z82k8znIHnG05YCgM=",
         "recordedInputs": [
           "ENV:CARGO_BAZEL_DEBUG \\0",
           "ENV:CARGO_BAZEL_GENERATOR_SHA256 \\0",
