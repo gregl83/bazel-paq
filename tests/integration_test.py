@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
 import tempfile
 
@@ -55,6 +56,7 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
         if windows:
             common += ["--enable_runfiles", "--shell_executable=" + env["BAZEL_SH"]]
         build_number = 0
+        disk_cache = workspace / "disk-cache"
         out = None
 
         def invoke(args):
@@ -62,21 +64,27 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
                                     text=True, encoding="utf-8", errors="replace", capture_output=True)
             return result.returncode, result.stdout + result.stderr
 
-        def build(target, strategy=default_strategy, succeeds=True):
+        def build(target, strategy=default_strategy, succeeds=True, extra_args=()):
             nonlocal build_number
             build_number += 1
             events = workspace / ("events-" + str(build_number) + ".json")
             code, log = invoke(["build", target,
                                 "--aspects=@bazel_paq//:defs.bzl%paq_aspect",
                                 "--output_groups=paq_files", "--strategy=PaqAspect=" + strategy,
-                                "--disk_cache=" + str(workspace / "disk-cache"),
-                                "--build_event_json_file=" + str(events)] + common)
+                                "--disk_cache=" + str(disk_cache),
+                                "--build_event_json_file=" + str(events)] + common + list(extra_args))
             assert (code == 0) == succeeds, log
-            completions = [event["completed"] for line in events.read_text(encoding="utf-8").splitlines()
-                           if "completed" in (event := json.loads(line))]
-            assert completions, log
-            if not succeeds:
-                assert any(not event.get("success", False) for event in completions), log
+            completions = []
+            for line in events.read_text(encoding="utf-8").splitlines():
+                event = json.loads(line)
+                completed = event.get("id", {}).get("targetCompleted", {})
+                if (completed.get("label") == target
+                        and completed.get("aspect", "").endswith("%paq_aspect")
+                        and "completed" in event):
+                    completions.append(event["completed"])
+            # The underlying target can succeed even when its hashing aspect fails.
+            assert len(completions) == 1, log
+            assert completions[0].get("success", False) == succeeds, log
             return log
 
         def fingerprint(name):
@@ -138,9 +146,17 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
             (out / "unrelated").write_text("noise", encoding="utf-8")
             (out / ".paq").write_text("old hash", encoding="utf-8")
             for artifact in ARTIFACTS:
-                (out / (artifact + ".paq")).unlink()
-            shutil.rmtree(workspace / "disk-cache", ignore_errors=True)
-            build("//:service", strategy="local")
+                sidecar = out / (artifact + ".paq")
+                # Bazel outputs can be read-only; Windows refuses to unlink them.
+                sidecar.chmod(sidecar.stat().st_mode | stat.S_IWUSR)
+                sidecar.unlink()
+                assert not sidecar.exists(), sidecar
+            # Use a fresh cache instead of silently ignoring cache-deletion errors.
+            # This build populates it for the restoration check below.
+            disk_cache = workspace / "local-disk-cache"
+            assert not disk_cache.exists()
+            log = build("//:service", strategy="local")
+            assert not re.search(r"[1-9][0-9]* disk cache hit", log), log
             assert hashes() == expected
             print("PASS: local execution excludes neighboring outputs and old hashes", flush=True)
 
@@ -159,18 +175,21 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
                 log = build("//:" + target, succeeds=False)
                 assert "failed to hash" in log, log
                 assert not (out / (target + ".paq")).exists()
-            for destination in ["missing", "link"]:
-                # A valid hash exists before each failure; it must not survive
-                # as an apparent successful result when following stops working.
-                write_build()
-                build("//:service")
-                assert (out / "link.paq").exists()
-                write_build(destination)
-                log = build("//:service", succeeds=False)
-                assert "failed to hash" in log, log
-                assert not (out / "link.paq").exists()
-                assert not (out / "chain.paq").exists()
-            print("PASS: broken links and cycles, including after a successful hash", flush=True)
+            for failure_mode in ["--nokeep_going", "--keep_going"]:
+                for destination in ["missing", "link"]:
+                    write_build()
+                    build("//:service")
+                    previous = {name: fingerprint(name) for name in ["link", "chain"]}
+                    write_build(destination)
+                    # Serial execution exercises cancellation before all hash actions
+                    # run. Old outputs may remain; aspect completion is authoritative.
+                    log = build("//:service", succeeds=False,
+                                extra_args=("--jobs=1", failure_mode))
+                    assert "failed to hash" in log, log
+                    for name, old_hash in previous.items():
+                        if (out / (name + ".paq")).exists():
+                            assert fingerprint(name) == old_hash, log
+            print("PASS: broken links and cycles report aspect failure with and without keep-going", flush=True)
         finally:
             invoke(["shutdown"])
 
