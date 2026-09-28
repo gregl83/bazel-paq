@@ -17,7 +17,7 @@ def main():
         workspace = Path(tmp)
         (workspace / "MODULE.bazel").write_text(
             'module(name = "paq_contract_test")\n'
-            'bazel_dep(name = "bazel_paq", version = "1.5.0")\n'
+            'bazel_dep(name = "bazel_paq", version = "2.0.0")\n'
             f'local_path_override(module_name = "bazel_paq", path = {json.dumps(str(REPO))})\n'
         )
         (workspace / "BUILD.bazel").write_text('''
