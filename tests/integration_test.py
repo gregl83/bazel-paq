@@ -79,7 +79,7 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
                                     text=True, encoding="utf-8", errors="replace", capture_output=True, timeout=180)
             return result.returncode, result.stdout + result.stderr
 
-        def build(target, strategy=default_strategy, succeeds=True, extra_args=()):
+        def build(target, strategy=default_strategy, succeeds=True, extra_args=(), artifacts=None):
             nonlocal build_number
             build_number += 1
             events = workspace / ("events-" + str(build_number) + ".json")
@@ -103,8 +103,10 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
             assert len(completions) == 1, log
             assert completions[0].get("success", False) == succeeds, log
             if succeeds and out is not None:
-                compare_standalone({"//:service": ARTIFACTS, "//:external_link": ["links/external"],
-                                    "//:linked_tree": ["linked_tree"]}[target])
+                compare_standalone(artifacts if artifacts is not None else {
+                    "//:service": ARTIFACTS, "//:external_link": ["links/external"],
+                    "//:linked_tree": ["linked_tree"],
+                }[target])
             return log
 
         def fingerprint(name):
@@ -238,10 +240,29 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
                 assert "failed to hash" in log, log
                 for name in names:
                     assert not (out / (name + ".paq")).exists()
+                if scenario != "cycle_pair":
+                    # Repair the failed link in place, without cleaning the workspace.
+                    build("//:service")
+                    directory = scenario in ["broken_directory", "directory_cycle"]
+                    referent = "tree.out" if directory else "first"
+                    replacement = (
+                        'link_output(name=%s, out=%s, destination=%s, target_type=%s, srcs=[":service"])'
+                        % (json.dumps(scenario), json.dumps(scenario), json.dumps(referent),
+                           json.dumps("directory" if directory else "file"))
+                    )
+                    build_file = workspace / "BUILD.bazel"
+                    lines = build_file.read_text(encoding="utf-8").splitlines()
+                    build_file.write_text("\n".join(
+                        replacement if line.startswith('link_output(name = "' + scenario + '"') else line
+                        for line in lines
+                    ) + "\n", encoding="utf-8")
+                    build(target, artifacts=names)
+                    assert fingerprint(scenario) == fingerprint(referent), "Repaired link hash mismatch"
             else:
                 destination = "missing" if "missing" in scenario else "link"
                 failure_mode = "--keep_going" if scenario.endswith("continue") else "--nokeep_going"
                 build("//:service")
+                baseline = hashes()
                 previous = {name: fingerprint(name) for name in ["link", "chain"]}
                 write_build(destination)
                 log = build("//:service", succeeds=False,
@@ -252,6 +273,11 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
                     # Old sidecars may remain after cancellation; BEP failure is authoritative.
                     if (out / (name + ".paq")).exists():
                         assert fingerprint(name) == old_hash, log
+                write_build()
+                build("//:service")
+                assert hashes() == baseline, "Link repair did not restore the successful baseline"
+                check_links(hashes())
+                print("PASS: successful rebuild after link repair: " + scenario, flush=True)
             print("PASS: independent Bazel and standalone failures: " + scenario, flush=True)
 
         try:
@@ -283,6 +309,20 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
             build("//:linked_tree")
             before = hashes()
             check_links(before)
+            build("//:service")
+            assert hashes() == before, "Unchanged rebuild changed hashes"
+            print("PASS: unchanged rebuild preserves every hash", flush=True)
+
+            # Touch source inputs without changing their contents, then rebuild.
+            for source in [workspace / "first.txt", tree / "nested/item"]:
+                metadata = source.stat()
+                try:
+                    os.utime(source, ns=(metadata.st_atime_ns, metadata.st_mtime_ns + 60_000_000_000))
+                    build("//:service")
+                    assert hashes() == before, f"Source timestamp changed hashes: {source}"
+                finally:
+                    os.utime(source, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
+            print("PASS: touching directory/file source inputs preserves every hash", flush=True)
             # Metadata changes must not affect content fingerprints.
             metadata_file = out / "first"
             metadata = metadata_file.stat()
@@ -313,6 +353,8 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
             ]
             for name, mutate in mutations:
                 previous = hashes()
+                if name == "add":
+                    before_addition = previous
                 mutate()
                 build("//:service")
                 current = hashes()
@@ -320,6 +362,8 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
                 assert current["first"] == previous["first"], name
                 assert current["second"] == previous["second"], name
                 check_links(current)
+                if name == "delete":
+                    assert current == before_addition, "Deleting the added file did not restore baseline hashes"
             print("PASS: directory modify/add/rename/delete/hidden changes", flush=True)
             write_build("second")
             build("//:service")

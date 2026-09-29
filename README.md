@@ -139,6 +139,8 @@ output tree to avoid discovering obsolete hash files.
 
 ## Development
 
+Before releasing changes, run the [manual release tests](docs/release-testing.md).
+
 Run the test suite:
 
 ```bash
