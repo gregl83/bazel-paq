@@ -131,8 +131,12 @@ root = Path(sys.argv[1])
 (root / "nested").mkdir(parents=True)
 (root / "nested/value").write_bytes(b"nested content\\n")
 destination = {"valid": "nested/value", "broken": "missing", "cycle": "file.link"}[sys.argv[2]]
-os.symlink(destination, root / "file.link")
+# Windows relative symlink targets require native separators.
+os.symlink(Path(destination), root / "file.link")
 os.symlink("nested", root / "directory.link", target_is_directory=True)
+assert (root / "directory.link/value").read_bytes() == (root / "nested/value").read_bytes()
+if sys.argv[2] == "valid":
+    assert (root / "file.link").read_bytes() == (root / "nested/value").read_bytes()
 PY
 """,
     )
