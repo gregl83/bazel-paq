@@ -10,8 +10,8 @@
 Your deployment or upload tooling can compare these fingerprints across builds
 and transfer only changed artifacts.
 
-Hashing is powered by [paq](https://github.com/gregl83/paq/blob/v2.0.0/README.md#performance),
-which averaged **73.8 ms to hash the Go programming language repository**
+Hashing is powered by [paq](https://github.com/gregl83/paq#performance),
+which averaged **30.0 ms to hash the Go programming language repository**
 (157 MB across 14,490 files) in its published standalone benchmark.
 
 No changes to individual build rules are needed. Add a module and a build
@@ -139,14 +139,17 @@ output tree to avoid discovering obsolete hash files.
 
 ## Development
 
+Before releasing changes, run the [manual release tests](docs/release-testing.md).
+
 Run the test suite:
 
 ```bash
 bazel test //tests/... --test_output=all
 ```
 
-Verify directory and file changes, symlink failures, local execution, and disk-cache
-restoration in a temporary consumer workspace:
+Verify hashes against standalone `paq --follow` runs, directory and file changes,
+symlink failures, local execution, and disk-cache restoration in a temporary
+consumer workspace:
 
 ```bash
 python tests/integration_test.py
@@ -154,6 +157,25 @@ python tests/integration_test.py
 
 CI runs this check on Linux, macOS, and Windows. On Windows, set `BAZEL_SH` to
 your Bash executable and enable symlink creation, as in the CI configuration.
+
+Live comparisons cover nested and empty directories, hidden entries, empty and
+binary files, executables, hard-link outputs, unusual filenames, and directory/file
+symlinks (including chains, empty referents, and links inside directories).
+They also check content changes, link retargeting, metadata independence, and
+cache restoration. Broken links, cycles, and failures after a successful build
+run as separate tests, checking both Bazel and standalone paq.
+
+POSIX checks cover unreadable directories/files and Bazel's rejection of FIFOs,
+sockets, and device links inside directory outputs. These report skips on Windows;
+permission checks also skip when running as root. They do not create privileged
+device nodes or exercise Windows ACLs. Source-artifact exclusions and graph
+behavior remain covered by `bazel test`.
+
+Run a single integration case by name, for example:
+
+```bash
+python tests/integration_test.py IntegrationTests.test_broken_file_link
+```
 
 ## License
 
