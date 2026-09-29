@@ -11,6 +11,7 @@ import shutil
 import socket
 import stat
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -39,10 +40,11 @@ def run_scenario(scenario):
         def write_build(link_target="first"):
             (workspace / "BUILD.bazel").write_text('''
 load(":outputs.bzl", "outputs", "link_output", "cycle_pair", "special_tree", "linked_tree")
+PYTHON = %s
 outputs(name = "service", srcs = ["first.txt", "second.txt"],
         tree_srcs = glob(["tree/**"]), link_target = %s, names = %s)
 cycle_pair(name = "cycle_pair")
-linked_tree(name = "linked_tree")
+linked_tree(name = "linked_tree", python = PYTHON)
 link_output(name = "broken", out = "broken", destination = "missing")
 link_output(name = "cycle", out = "cycle", destination = "cycle")
 link_output(name = "broken_directory", out = "broken_directory", destination = "missing_directory", target_type = "directory")
@@ -50,7 +52,8 @@ link_output(name = "directory_cycle", out = "directory_cycle", destination = "di
 genrule(name = "external", srcs = ["external.txt"], outs = ["external/value"],
         cmd = "cp $(SRCS) $@")
 link_output(name = "external_link", out = "links/external", destination = "../external/value", srcs = [":external"])
-''' % (json.dumps(link_target), json.dumps(UNUSUAL_NAMES, ensure_ascii=False)), encoding="utf-8")
+''' % (json.dumps(Path(sys.executable).as_posix()), json.dumps(link_target),
+       json.dumps(UNUSUAL_NAMES, ensure_ascii=False)), encoding="utf-8")
 
         write_build()
         (workspace / "first.txt").write_text("first version\n", encoding="utf-8")
@@ -158,6 +161,9 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
 
         def run_failure(scenario):
             if scenario in ["tree_broken", "tree_cycle"]:
+                # Verify the producer works before accepting its expected failure.
+                code, log = invoke(["build", "//:linked_tree"] + common)
+                assert code == 0, log
                 mode = scenario.removeprefix("tree_")
                 reference_tree = workspace / "invalid-tree"
                 reference_tree.mkdir()
@@ -165,8 +171,8 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
                 standalone_failure(reference_tree)
                 build_file = workspace / "BUILD.bazel"
                 build_file.write_text(build_file.read_text(encoding="utf-8").replace(
-                    'linked_tree(name = "linked_tree")',
-                    'linked_tree(name = "linked_tree", mode="' + mode + '")'), encoding="utf-8")
+                    'linked_tree(name = "linked_tree", python = PYTHON)',
+                    'linked_tree(name = "linked_tree", python = PYTHON, mode="' + mode + '")'), encoding="utf-8")
                 # Tree validation can reject these links before the aspect executes.
                 code, log = invoke(["build", "//:linked_tree",
                                     "--aspects=@bazel_paq//:defs.bzl%paq_aspect",
@@ -219,7 +225,7 @@ link_output(name = "external_link", out = "links/external", destination = "../ex
                 assert result.returncode == 0, result.stderr
                 assert re.fullmatch("[0-9a-f]{64}", json.loads(reference.read_text()))
                 with (workspace / "BUILD.bazel").open("a", encoding="utf-8") as build_file:
-                    build_file.write('\nspecial_tree(name="special", kind=%s)\n' % json.dumps(scenario))
+                    build_file.write('\nspecial_tree(name="special", kind=%s, python=PYTHON)\n' % json.dumps(scenario))
                 code, log = invoke(["build", "//:special",
                                     "--aspects=@bazel_paq//:defs.bzl%paq_aspect",
                                     "--output_groups=+paq_files"] + common)

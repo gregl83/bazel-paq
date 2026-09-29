@@ -108,18 +108,22 @@ def _special_tree(ctx):
     elif ctx.attr.kind == "device":
         command += 'ln -s /dev/null "$1/entry"'
     else:
-        command += "python3 -c 'import socket,sys; socket.socket(socket.AF_UNIX).bind(sys.argv[1])' \"$1/entry\""
-    ctx.actions.run_shell(outputs = [tree], arguments = [tree.path], command = command)
+        command += "\"$2\" -c 'import socket,sys; socket.socket(socket.AF_UNIX).bind(sys.argv[1])' \"$1/entry\""
+    ctx.actions.run_shell(outputs = [tree], arguments = [tree.path, ctx.attr.python], command = command)
     return [DefaultInfo(files = depset([tree]))]
 
-special_tree = rule(implementation = _special_tree, attrs = {"kind": attr.string(values = ["fifo", "socket", "device"])})
+special_tree = rule(implementation = _special_tree, attrs = {
+    "kind": attr.string(values = ["fifo", "socket", "device"]),
+    "python": attr.string(mandatory = True),
+})
 
 def _linked_tree(ctx):
     tree = ctx.actions.declare_directory(ctx.label.name)
     ctx.actions.run_shell(
         outputs = [tree],
-        arguments = [tree.path, ctx.attr.mode],
-        command = """python - "$1" "$2" <<'PY'
+        arguments = [tree.path, ctx.attr.mode, ctx.attr.python],
+        command = """
+"$3" - "$1" "$2" <<'PY'
 import os
 from pathlib import Path
 import sys
@@ -136,5 +140,8 @@ PY
 
 linked_tree = rule(
     implementation = _linked_tree,
-    attrs = {"mode": attr.string(default = "valid", values = ["valid", "broken", "cycle"])},
+    attrs = {
+        "mode": attr.string(default = "valid", values = ["valid", "broken", "cycle"]),
+        "python": attr.string(mandatory = True),
+    },
 )
