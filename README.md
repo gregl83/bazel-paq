@@ -10,8 +10,8 @@
 Your deployment or upload tooling can compare these fingerprints across builds
 and transfer only changed artifacts.
 
-Hashing is powered by [paq](https://github.com/gregl83/paq/blob/v2.0.0/README.md#performance),
-which averaged **73.8 ms to hash the Go programming language repository**
+Hashing is powered by [paq](https://github.com/gregl83/paq#performance),
+which averaged **31.0 ms to hash the Go programming language repository**
 (157 MB across 14,490 files) in its published standalone benchmark.
 
 No changes to individual build rules are needed. Add a module and a build
